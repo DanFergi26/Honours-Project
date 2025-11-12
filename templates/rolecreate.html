@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Role</title>
+</head>
+<body>
+    <h1>Create a New Role</h1>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <div>
+            <label for="permName">Role Name:</label>
+            <input type="text" id="roleName" name="roleName" required>
+        </div>
+        <br>
+        <div>
+            <label for="roleDesc">Role Description:</label>
+            <textarea id="roleDesc" name="roleDesc" rows="3" cols="30" required></textarea>
+        </div>
+        <br>
+        <button type="submit">Create Role</button>
+    </form>
+	<br>
+	<a href="/">Go back to Home</a>
+</body>
+</html>

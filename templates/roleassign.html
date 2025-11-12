@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assign Permission to Role</title>
+</head>
+<body>
+    <h1>Assign Permission to Role</h1>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <label for="roleName">Select Role:</label>
+        <select name="roleName" id="roleName" required>
+            {% for role in roles %}
+                <option value="{{ role.roleName }}">{{ role.roleName }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <label for="permName">Select Permission:</label>
+        <select name="permName" id="permName" required>
+            {% for perm in perms %}
+                <option value="{{ perm.permName }}">{{ perm.permName }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <button type="submit">Assign Permission</button>
+    </form>
+
+    <br>
+    <a href="/">Go back to Home</a>
+</body>
+</html>
+

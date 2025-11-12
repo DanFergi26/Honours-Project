@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+
+    <title>Signup</title>
+</head>
+
+
+<body>
+    <header>
+        
+
+		
+		
+		 <!-- Authentication Container -->
+{% if session.get('logged_in') %}
+    <!-- Show user info when logged in -->
+    <div class="auth-container">
+        <div class="profile-icon">
+            <a href=""> <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.png')) }}" alt="Profile Picture">
+        </div>
+        <span>{{ session.get('username') }}</span> </a>
+    </div>
+{% else %}
+    <!-- Show login form when NOT logged in -->
+    <div class="auth-container">
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="text" name="username" placeholder="Enter username" required>
+            <input type="password" name="password" placeholder="Enter password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div id="loginMessage">{{ message }}</div>
+        <a href="{{ url_for('signup') }}">
+            <button type="button">Sign Up</button>
+        </a>
+    </div>
+{% endif %}
+
+
+    </header>
+	
+   <hr>
+  
+	<div class="signup-menu">
+            <!-- Form for signing up -->
+            <div class="login-container">
+                <h2>Create Account</h2>
+                <form action="/signup" method="post" enctype="multipart/form-data">
+                    <div class="signinup-form">
+                        <label for="propic">Enter a profile picture</label>
+                        <input type="file" id="propic" name="propic">
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="username">Create a username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="surname">Enter your surname</label>
+                        <input type="text" id="surname" name="surname" required>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="forename">Enter your forename</label>
+                        <input type="text" id="forename" name="forename" required>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="email">Enter your email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <br>
+					<div class="signinup-form">
+                        <label for="dob">Enter your date of birth</label>
+                        <input type="date" id="dob" name="dob" required>
+                    </div>
+                    <br>
+					<div class="signinup-form">
+                        <label for="country">Enter your country of origin</label>
+                        <select id="country" name="country" required>
+							<option value="">-- Select a country--</option>
+							</select>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="password">Create a password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <label for="repassword">Re-enter your password</label>
+                        <input type="password" id="repassword" name="repassword" required>
+                    </div>
+                    <br>
+                    <div class="signinup-form">
+                        <input type="submit" value="Create Account">
+                    </div>
+                    <p>Already have an account? Login from the <a href="{{ url_for('home') }}">Home</a> page</p>
+
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                        <p class="flashes">
+                            {% for message in messages %}
+                            {{ message }}<br>
+                            {% endfor %}
+                        </p>
+                        {% endif %}
+                    {% endwith %}
+                </form>
+            </div>
+        </div>
+		
+				
+		{% if session.get('logged_in') %}
+		  <p>Logged in as {{ session.get('username') }} | 
+			 <a href="{{ url_for('logout') }}">Logout</a>
+		  </p>
+		  <br>
+		  <a href="/">Go back to Home</a>
+		{% endif %}
+
+   
+		<script>
+		// List of all countries
+		const countries = [
+			"Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria",
+			"Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin",
+			"Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso",
+			"Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", "Chad", "Chile",
+			"China", "Colombia", "Comoros", "Congo (Brazzaville)", "Congo (Kinshasa)", "Costa Rica", "Croatia", "Cuba",
+			"Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt",
+			"El Salvador", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia",
+			"Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras", "Hungary",
+			"Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan",
+			"Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia",
+			"Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali",
+			"Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
+			"Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands",
+			"New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan",
+			"Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal",
+			"Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia",
+			"Saint Vincent and the Grenadines", "Samoa", "San Marino", "Saudi Arabia", "Senegal", "Serbia", "Seychelles",
+			"Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
+			"South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+			"Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia",
+			"Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom",
+			"United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen",
+			"Zambia", "Zimbabwe"
+		];
+
+// Populate dropdown
+const countrySelect = document.getElementById("country");
+countries.forEach(country => {
+    const option = document.createElement("option");
+    option.value = country;
+    option.textContent = country;
+    countrySelect.appendChild(option);
+});
+</script>
+	
+	<br><br>
+    <br><br>
+	<hr>
+    <footer>&copy; 2025 Lock Bound - The Web-Based Game - Created by Dan Ferguson, Joseph Fanning, Adam Wright, Aden Barr, Azaan Majeed, Euan Tennant</footer>
+	
+	<br>
+</body>
+</html>

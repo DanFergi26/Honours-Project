@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assign Role</title>
+</head>
+<body>
+    <h1>Assign Role to User</h1>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+    <form method="POST">
+        <label for="username">Enter Username:</label>
+        <input type="text" name="username" id="username" required>
+        <br><br>
+
+        <label for="role_id">Select Role:</label>
+        <select name="role_id" id="role_id" required>
+            {% for role in roles %}
+                <option value="{{ role.id }}">{{ role.roleName }}</option>
+            {% endfor %}
+        </select>
+        <br><br>
+
+        <button type="submit">Assign Role</button>
+    </form>
+	<br>
+	<a href="/">Go back to Home</a>
+</body>
+</html>
+
