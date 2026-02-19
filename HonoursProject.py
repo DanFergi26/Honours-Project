@@ -72,7 +72,6 @@ class User(db.Model):
         except Exception:
             return "[Invalid or old data]"
 
-
     # Properties
     @property
     def surname(self): return self.decrypt(self._surname)
@@ -140,12 +139,17 @@ class Figures(db.Model):
     series = db.Column(db.String(50), nullable=False)
     figCode = db.Column(db.Integer, nullable=False)
     janCode = db.Column(db.Integer, nullable=False)
-    releaseDate = db.Column(db.Integer, nullable=False)
+    releaseDate = db.Column(db.String(50), nullable=False)
     retailPrice = db.Column(db.Integer, nullable=False)
     avgPrice = db.Column(db.Integer, nullable=False)
     itemSize = db.Column(db.Integer, nullable=False)
     itemWeight = db.Column(db.Integer, nullable=False)
     links = db.Column(db.String(2000), nullable=False)
+
+    # Relationships
+    brand = db.relationship("Brand", backref="figures")
+    manufacturer = db.relationship("Manufacturer", backref="figures")
+
     collection = db.relationship('Collection', secondary='FigureCollection', back_populates='figures')
 
 
@@ -179,8 +183,8 @@ class FigureCollection(db.Model):
 
 
 # ------------------- Routes -------------------
-# Role and Permission routes
-## Permission Creator
+
+# Permission Creator
 @app.route('/permcreate', methods=["GET", "POST"])
 def permcreate():
     message = None
@@ -198,7 +202,8 @@ def permcreate():
             message = f"Permission '{permName}' created successfully!"
     return render_template("permcreate.html", message=message)
 
-## Role Creator
+
+# Role Creator
 @app.route('/rolecreate', methods=["GET", "POST"])
 def rolecreate():
     message = None
@@ -216,7 +221,8 @@ def rolecreate():
             message = f"The role '{roleName}' has been created successfully!"
     return render_template("rolecreate.html", message=message)
 
-## Role Assigner
+
+# Role Assigner
 @app.route("/roleassign", methods=["GET", "POST"])
 def roleassign():
     message = None
@@ -241,13 +247,14 @@ def roleassign():
     all_roles = Roles.query.all()
     all_perms = Permissions.query.all()
     return render_template("roleassign.html", message=message, roles=all_roles, perms=all_perms)
-    
+
+
 @app.route('/profile_pics/<filename>')
 def profile_pics(filename):
     return send_from_directory(PROPIC_DIR, filename)
 
+
 def user_has_permission(user: User, perm_id: int) -> bool:
-    """Check if the user has a given permission by ID."""
     if not user.roleID:
         return False
     role = Roles.query.get(user.roleID)
@@ -255,12 +262,11 @@ def user_has_permission(user: User, perm_id: int) -> bool:
         return False
     return any(p.id == perm_id for p in role.permissions)
 
+
 # User Assigner
 @app.route("/assignuser", methods=["GET", "POST"])
 def assignuser():
     message = None
-
-    # Get all roles for dropdown
     all_roles = Roles.query.all()
 
     if request.method == "POST":
@@ -301,7 +307,10 @@ def signup():
         repassword = request.form["repassword"]
 
         existing_user = User.query.filter_by(username=username).first()
-        existing_email = User.query.filter_by(email=email).first()
+
+        # Cannot query encrypted email normally
+        all_users = User.query.all()
+        existing_email = any(u.email == email for u in all_users)
 
         if existing_user:
             flash("Username already exists.")
@@ -318,6 +327,7 @@ def signup():
             db.session.add(user)
             db.session.commit()
             return redirect(url_for("login"))
+
     return render_template("signup.html")
 
 
@@ -328,6 +338,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
+
         if not user:
             message = "Account doesn't exist"
         elif not user.check_password(password):
@@ -337,9 +348,10 @@ def login():
             session['username'] = username
             session['profile_pic'] = user.profile_pic if user.profile_pic else "default_pfp.png"
             return redirect(url_for('home'))
-    return render_template("home.html", message=message)
-    
-# Users route
+
+    return render_template("login.html", message=message)
+
+
 @app.route("/users", methods=["GET"])
 def users():
     if not session.get("logged_in"):
@@ -347,13 +359,13 @@ def users():
         return redirect(url_for("login"))
 
     current_user = User.query.filter_by(username=session["username"]).first()
+
     show_surname = False
     show_forename = False
     show_dob = False
     show_country = False
     show_email = False
 
-    # Check if user has permissionID=1
     if current_user and current_user.roleID:
         role_perms = RolePermissions.query.filter_by(roleID=current_user.roleID).all()
         if any(rp.permissionsID == 1 for rp in role_perms):
@@ -362,7 +374,7 @@ def users():
             show_dob = True
             show_country = True
             show_email = True
-            
+
     users_list = []
     for u in User.query.all():
         user_data = {
@@ -372,56 +384,16 @@ def users():
             "roleID": u.roleID,
             "profile_pic": u.profile_pic
         }
-        
-        ## Surname
-        if show_surname:
-            try:
-                user_data["surname"] = u.surname
-            except Exception:
-                user_data["surname"] = "[Error decrypting]"
-        else:
-            user_data["surname"] = "[Hidden]"
-        
-        ## Forename
-        if show_forename:
-            try:
-                user_data["forename"] = u.forename
-            except Exception:
-                user_data["forename"] = "[Error decrypting]"
-        else:
-            user_data["forename"] = "[Hidden]"
-        
-        ## DOB
-        if show_dob:
-            try:
-                user_data["dob"] = u.dob
-            except Exception:
-                user_data["dob"] = "[Error decrypting]"
-        else:
-            user_data["dob"] = "[Hidden]"
-        
-        ## Country
-        if show_country:
-            try:
-                user_data["country"] = u.country
-            except Exception:
-                user_data["country"] = "[Error decrypting]"
-        else:
-            user_data["country"] = "[Hidden]"
-            
-        ## Email
-        if show_email:
-            try:
-                user_data["email"] = u.email
-            except Exception:
-                user_data["email"] = "[Error decrypting]"
-        else:
-            user_data["email"] = "[Hidden]"
+
+        user_data["surname"] = u.surname if show_surname else "[Hidden]"
+        user_data["forename"] = u.forename if show_forename else "[Hidden]"
+        user_data["dob"] = u.dob if show_dob else "[Hidden]"
+        user_data["country"] = u.country if show_country else "[Hidden]"
+        user_data["email"] = u.email if show_email else "[Hidden]"
 
         users_list.append(user_data)
 
     return render_template("users.html", users=users_list, show_email=show_email)
-
 
 
 @app.route("/logout")
@@ -440,15 +412,92 @@ def home():
     )
 
 
-# ------------------- Database Initialization -------------------
+# ------------------- Add Figure Route (FIXED) -------------------
+@app.route("/addfigure", methods=["GET", "POST"])
+def addfigure():
+    brands = Brand.query.all()
+    manufacturers = Manufacturer.query.all()
 
+    if request.method == "POST":
+        figname = request.form["figname"]
+        figdesc = request.form["figdesc"]
+        brandID = request.form["brandID"]
+        manufacturerID = request.form["manufacturerID"]
+        genre = request.form["genre"]
+        series = request.form["series"]
+        figCode = request.form["figCode"]
+        janCode = request.form["janCode"]
+        releaseDate = request.form["releaseDate"]
+        retailPrice = request.form["retailPrice"]
+        avgPrice = request.form["avgPrice"]
+        itemSize = request.form["itemSize"]
+        itemWeight = request.form["itemWeight"]
+        links = request.form["links"]
+
+        new_figure = Figures(
+            name=figname,
+            desc=figdesc,
+            brandID=int(brandID),
+            manufacturerID=int(manufacturerID),
+            genre=genre,
+            series=series,
+            figCode=int(figCode),
+            janCode=int(janCode),
+            releaseDate=releaseDate,
+            retailPrice=int(retailPrice),
+            avgPrice=int(avgPrice),
+            itemSize=int(itemSize),
+            itemWeight=int(itemWeight),
+            links=links
+        )
+
+        db.session.add(new_figure)
+        db.session.commit()
+
+        flash("Figure added successfully!")
+        return redirect(url_for("addfigure"))
+
+    return render_template("addfigure.html", brand=brands, manufacturer=manufacturers)
+
+
+# ------------------- Search Route -------------------
+@app.route("/search", methods=["GET"])
+def search():
+    query = request.args.get("q", "").strip()
+    user_results = []
+    figure_results = []
+
+    if query:
+        # Search users by username
+        user_results = User.query.filter(User.username.ilike(f"%{query}%")).all()
+
+        # Search figures
+        figure_results = Figures.query.join(Brand).join(Manufacturer).filter(
+            db.or_(
+                Figures.name.ilike(f"%{query}%"),
+                Figures.genre.ilike(f"%{query}%"),
+                Figures.series.ilike(f"%{query}%"),
+                db.cast(Figures.figCode, db.String).ilike(f"%{query}%"),
+                db.cast(Figures.janCode, db.String).ilike(f"%{query}%"),
+                Brand.name.ilike(f"%{query}%"),
+                Manufacturer.name.ilike(f"%{query}%")
+            )
+        ).all()
+
+    return render_template(
+        "search.html",
+        query=query,
+        user_results=user_results,
+        figure_results=figure_results
+    )
+
+
+# ------------------- Database Initialization -------------------
 def initialize_db():
     with app.app_context():
-        # Ensure DB file exists
         if not os.path.exists(DB_FILE):
             open(DB_FILE, 'a').close()
 
-        # Check missing tables
         from sqlalchemy import inspect
         inspector = inspect(db.engine)
         required_tables = [t.name for t in db.metadata.sorted_tables]
@@ -457,8 +506,10 @@ def initialize_db():
             db.create_all()
             print(f"Created missing tables: {missing_tables}")
 
+
 with app.app_context():
     db.create_all()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

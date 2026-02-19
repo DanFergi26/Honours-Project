@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+</head>
+
+<body>
+
+    <h2>Search Results for: "{{ query }}"</h2>
+
+    <form action="/search" method="get">
+        <input type="text" name="q" placeholder="Search users or figures..." value="{{ query }}" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <hr>
+
+    <h3>Users</h3>
+    {% if user_results %}
+        <ul>
+            {% for u in user_results %}
+                <li>
+                    <strong>{{ u.username }}</strong>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No users found.</p>
+    {% endif %}
+
+    <hr>
+
+    <h3>Figures</h3>
+    {% if figure_results %}
+        <ul>
+            {% for f in figure_results %}
+                <li>
+                    <strong>{{ f.name }}</strong><br>
+                    <b>Brand:</b> {{ f.brand.name }} <br>
+                    <b>Manufacturer:</b> {{ f.manufacturer.name }} <br>
+                    <b>Genre:</b> {{ f.genre }} <br>
+                    <b>Series:</b> {{ f.series }} <br>
+                    <b>Figure Code:</b> {{ f.figCode }} <br>
+                    <b>JAN Code:</b> {{ f.janCode }} <br>
+                    <b>Retail Price:</b> {{ f.retailPrice }} <br>
+                    <b>Average Price:</b> {{ f.avgPrice }} <br>
+                    <b>Size:</b> {{ f.itemSize }} cm <br>
+                    <b>Weight:</b> {{ f.itemWeight }} g <br>
+                    <b>Links:</b> <a href="{{ f.links }}" target="_blank">{{ f.links }}</a>
+                </li>
+                <br>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No figures found.</p>
+    {% endif %}
+
+    <hr>
+
+    <a href="{{ url_for('home') }}">Back to Home</a>
+
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Add Figure</title>
+</head>
+
+<body>
+    <header>
+
+        <!-- Authentication Container -->
+        {% if session.get('logged_in') %}
+            <!-- Show user info when logged in -->
+            <div class="auth-container">
+                <div class="profile-icon">
+                    <a href="">
+                        <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.png')) }}" alt="Profile Picture" width="50">
+                    </a>
+                </div>
+                <span>{{ session.get('username') }}</span>
+            </div>
+        {% else %}
+            <!-- Show login form when NOT logged in -->
+            <div class="auth-container">
+                <form method="POST" action="{{ url_for('login') }}">
+                    <input type="text" name="username" placeholder="Enter username" required>
+                    <input type="password" name="password" placeholder="Enter password" required>
+                    <button type="submit">Login</button>
+                </form>
+
+                <div id="loginMessage">{{ message }}</div>
+
+                <a href="{{ url_for('signup') }}">
+                    <button type="button">Sign Up</button>
+                </a>
+            </div>
+        {% endif %}
+
+    </header>
+
+    <hr>
+
+    <div class="signup-menu">
+        <div class="login-container">
+            <h2>Add Figure</h2>
+
+            <form action="/addfigure" method="post">
+
+                <div class="signinup-form">
+                    <label for="figname">Name:</label>
+                    <input type="text" id="figname" name="figname" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="figdesc">Description:</label>
+                    <input type="text" id="figdesc" name="figdesc" required>
+                </div>
+
+                <br>
+
+                <label for="brandID">Select Brand:</label>
+                <select name="brandID" id="brandID" required>
+                    <option value="">--Choose Brand--</option>
+                    {% for b in brand %}
+                        <option value="{{ b.id }}">{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <br><br>
+
+                <label for="manufacturerID">Select Manufacturer:</label>
+                <select name="manufacturerID" id="manufacturerID" required>
+                    <option value="">--Choose Manufacturer--</option>
+                    {% for m in manufacturer %}
+                        <option value="{{ m.id }}">{{ m.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <br><br>
+
+                <div class="signinup-form">
+                    <label for="genre">Genre:</label>
+                    <input type="text" id="genre" name="genre" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="series">Series:</label>
+                    <input type="text" id="series" name="series" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="figCode">Figure Code:</label>
+                    <input type="number" id="figCode" name="figCode" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="janCode">JAN Code:</label>
+                    <input type="number" id="janCode" name="janCode" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="releaseDate">Release Date:</label>
+                    <input type="date" id="releaseDate" name="releaseDate" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="retailPrice">Retail Price:</label>
+                    <input type="number" id="retailPrice" name="retailPrice" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="avgPrice">Second Hand Market Price (Average):</label>
+                    <input type="number" id="avgPrice" name="avgPrice" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="itemSize">Figure Size (cm):</label>
+                    <input type="number" id="itemSize" name="itemSize" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="itemWeight">Figure Weight (g):</label>
+                    <input type="number" id="itemWeight" name="itemWeight" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <label for="links">Purchase Links:</label>
+                    <input type="text" id="links" name="links" required>
+                </div>
+
+                <br>
+
+                <div class="signinup-form">
+                    <input type="submit" value="Add Figure">
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <br><br>
+    <hr>
+
+    <footer>&copy;</footer>
+
+    <br>
+</body>
+</html>
