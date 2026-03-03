@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup Verification</title>
+</head>
+<body>
+    <h2>Verify Your Email</h2>
+    <p>We've sent a verification code to your email. Please enter it below to complete signup.</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul style="color:red;">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        <label for="code">Verification Code:</label>
+        <input type="text" id="code" name="code" required>
+        <button type="submit">Verify</button>
+    </form>
+
+    <p><a href="{{ url_for('signup') }}">Back to Signup</a></p>
+</body>
+</html>

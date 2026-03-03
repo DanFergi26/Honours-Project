@@ -44,6 +44,7 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     profile_pic = db.Column(db.String(255), nullable=True)
 
+    email_code = db.Column(db.String(6), nullable=True)
     roleID = db.Column(db.Integer, db.ForeignKey('Roles.id'), nullable=True)
 
     # ------------------- Password -------------------
