@@ -1,9 +1,10 @@
 from flask import Flask, request, redirect, url_for, flash, session, render_template, send_from_directory
-from models.models import db, User, Figures
-from services.user_service import register_user, authenticate_user, get_all_users_with_permissions, verify_signup_code, verify_login_code
+from models.models import db, User, Figures, LoginLog
+from services.user_service import register_user, authenticate_user, get_all_users_with_permissions, verify_signup_code, verify_login_code, log_login_attempt
 from services.role_service import create_permission, create_role, assign_permission_to_role, assign_role_to_user
 from services.figure_service import add_figure, get_all_brands, get_all_manufacturers
 from services.email_service import send_verification_email
+from datetime import datetime, timedelta
 import os
 import random
 
@@ -19,6 +20,10 @@ DB_PATH = os.path.join(INSTANCE_DIR, "Honours.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
+
+# ------------------- Create Database Tables -------------------
+with app.app_context():
+    db.create_all()
 
 # ------------------- Static Folders -------------------
 PROFILE_PICS_FOLDER = os.path.join(BASE_DIR, "static", "profile_pics")
@@ -75,7 +80,7 @@ def verify_signup():
 
         session.pop("signup_email", None)
         flash("Signup complete! You can now login.")
-        return redirect(url_for("login"))
+        return redirect(url_for("home"))
 
     return render_template("signup_verify.html")
 
@@ -87,28 +92,51 @@ def login():
         password = request.form.get("password")
 
         user = User.query.filter_by(username=username).first()
-        if not user:
-            return render_template("login.html", message="Account does not exist.")
-        if not user.check_password(password):
-            return render_template("login.html", message="Password incorrect.")
 
-        # Generate 2FA code
+        if not user:
+            log_login_attempt(None, username, False)
+            return render_template("home.html", message="Account does not exist.")
+
+        # CHECK LOCKOUT
+        if user.lockout_until and datetime.utcnow() < user.lockout_until:
+            log_login_attempt(user, username, False, timed_out=True)
+            return render_template("home.html", message="Account locked. Try again later.")
+
+        if not user.check_password(password):
+            user.failed_attempts += 1
+
+            # LOCK AFTER 3 FAILS
+            if user.failed_attempts >= 3:
+                user.lockout_until = datetime.utcnow() + timedelta(minutes=10)
+                db.session.commit()
+                log_login_attempt(user, username, False, timed_out=True)
+                return render_template("home.html", message="Too many attempts. Locked for 10 minutes.")
+
+            db.session.commit()
+            log_login_attempt(user, username, False)
+            return render_template("home.html", message="Password incorrect.")
+
+        # PASSWORD CORRECT
+        user.failed_attempts = 0
+        user.lockout_until = None
+        db.session.commit()
+
+        log_login_attempt(user, username, True)
+
+        # Continue with 2FA as before
         code = str(random.randint(100000, 999999))
 
-        # Store code and username in session for verification
         session["login_username"] = user.username
         session["login_email"] = user.email
         session["login_code"] = code
         session["login_attempts"] = 0
 
-        # Send email once
         send_verification_email(user.email, code, subject="Login Verification Code")
 
         flash("2FA code sent to your email.")
         return redirect(url_for("verify_login"))
 
-    return render_template("login.html")
-
+    return render_template("home.html")
 
 @app.route("/verify_login", methods=["GET", "POST"])
 def verify_login():
@@ -140,7 +168,7 @@ def verify_login():
             flash("Invalid verification code.")
 
     return render_template("login_verify.html")
-
+    
 # ------------------- Logout -------------------
 @app.route("/logout")
 def logout():
@@ -218,9 +246,27 @@ def search():
         figure_results=figure_results
     )
 
+# ----------------- Login Logs ------------------
+@app.route("/loginlogs")
+def loginlogs():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session["username"]).first()
+
+    
+   #-- if user.roleID != 1:  
+   #--     return "Access Denied", 403
+
+    logs = LoginLog.query.order_by(LoginLog.attempt_time.desc()).all()
+    return render_template("loginlogs.html", logs=logs)
+
+#-------------------- Change Password -----------
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    # This is a placeholder
+    return "Change password page coming soon!"
+    
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    with app.app_context():
-        os.makedirs("instance", exist_ok=True)
-        db.create_all()
     app.run(debug=True)

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Search Results</title>
+</head>
+
+<body>
+<h2>Login Attempt Logs</h2>
+
+<table border="1">
+<tr>
+    <th>Username</th>
+    <th>IP</th>
+    <th>Success</th>
+    <th>Timed Out</th>
+    <th>Time</th>
+</tr>
+
+{% for log in logs %}
+<tr class="{% if log.timed_out %}timeout{% endif %}">
+    <td>{{ log.username_attempted }}</td>
+    <td>{{ log.ip_address }}</td>
+    <td>{{ "Yes" if log.success else "No" }}</td>
+    <td>{{ "Yes" if log.timed_out else "No" }}</td>
+    <td>{{ log.attempt_time }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<style>
+.timeout {
+    color: red;
+    font-weight: bold;
+}
+</style>
+
+</body>
+</html>

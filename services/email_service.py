@@ -8,6 +8,9 @@ SMTP_PASSWORD = "lpok alxt pjfk xpnz"  # generate this in Google Account setting
 FROM_EMAIL = SMTP_USER
 
 def send_verification_email(to_email, code, subject="Your verification code"):
+    """
+    Sends a verification email with a code.
+    """
     msg = EmailMessage()
     msg.set_content(f"Your verification code is: {code}")
     msg["Subject"] = subject
@@ -16,9 +19,29 @@ def send_verification_email(to_email, code, subject="Your verification code"):
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()                  # ← required by Google
+            server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.send_message(msg)
         print(f"Email sent to {to_email}")
     except Exception as e:
         print("Error sending email:", e)
+
+
+def send_login_alert_email(to_email, location, change_password_url):
+    msg = EmailMessage()
+    msg.set_content(
+        f"Your account was just logged into from {location}.\n"
+        f"If this wasn't you, you can change your password here: {change_password_url}"
+    )
+    msg["Subject"] = "Login Alert"
+    msg["From"] = FROM_EMAIL
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.send_message(msg)
+        print(f"Login alert email sent to {to_email}")
+    except Exception as e:
+        print("Error sending login alert email:", e)

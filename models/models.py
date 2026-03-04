@@ -3,6 +3,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from cryptography.fernet import Fernet
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 import os
 
 db = SQLAlchemy()
@@ -46,6 +47,9 @@ class User(db.Model):
 
     email_code = db.Column(db.String(6), nullable=True)
     roleID = db.Column(db.Integer, db.ForeignKey('Roles.id'), nullable=True)
+    
+    failed_attempts = db.Column(db.Integer, default=0)
+    lockout_until = db.Column(db.DateTime, nullable=True)
 
     # ------------------- Password -------------------
 
@@ -67,6 +71,7 @@ class User(db.Model):
             return fernet.decrypt(value).decode()
         except Exception:
             return "[Invalid or old data]"
+            
 
     # ------------------- Properties -------------------
 
@@ -118,7 +123,22 @@ class User(db.Model):
     def bio(self, value):
         self._bio = self.encrypt(value) if value else None
 
+# ------------------- Login Logs -------------------
 
+class LoginLog(db.Model):
+    __tablename__ = 'Login Log'
+    
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=True)
+    username_attempted = db.Column(db.String(150))
+    ip_address = db.Column(db.String(45))
+
+    success = db.Column(db.Boolean, nullable=False)
+    timed_out = db.Column(db.Boolean, default=False)
+
+    attempt_time = db.Column(db.DateTime, default=datetime.utcnow)
+ 
 # ------------------- Roles & Permissions -------------------
 
 class Roles(db.Model):
