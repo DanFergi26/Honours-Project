@@ -33,8 +33,12 @@ os.makedirs(PROFILE_PICS_FOLDER, exist_ok=True)
 def profile_pics(filename):
     return send_from_directory(PROFILE_PICS_FOLDER, filename)
 
-# ------------------- Home -------------------
 @app.route("/")
+def index_redirect():
+    return redirect(url_for("loading"))
+    
+# ------------------- Home -------------------
+@app.route("/home")
 def home():
     return render_template(
         "home.html",
@@ -266,6 +270,11 @@ def loginlogs():
 def change_password():
     # This is a placeholder
     return "Change password page coming soon!"
+
+
+@app.route("/loading")
+def loading():
+    return render_template("loading.html")
     
 # ------------------- Run App -------------------
 if __name__ == "__main__":

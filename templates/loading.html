@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Initiating System...</title>
+    <style>
+        /* Retro arcade background */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Press Start 2P', monospace;
+            background-color: #000;
+            color: #0ff; /* neon cyan */
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+        }
+
+        /* Container for retro blocks */
+        .progress-container {
+            display: flex;
+            width: 320px;
+            height: 40px;
+            background-color: #111;
+            border: 3px solid #0ff;
+            box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+        }
+
+        /* Each block in the bar */
+        .progress-bar {
+            display: flex;
+            flex-direction: row;
+            flex-grow: 1;
+        }
+
+        .block {
+            flex: 1;
+            margin: 1px;
+            background-color: #0ff;
+            opacity: 0.2;
+            transition: opacity 0.1s;
+            box-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
+        }
+
+        .block.active {
+            opacity: 1;
+        }
+
+        /* Optional neon flicker animation */
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        .block.active {
+            animation: flicker 0.3s infinite;
+        }
+    </style>
+    <!-- Import 80s arcade font -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Initiating System...</h1>
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar">
+            <!-- Blocks will be inserted by JS -->
+        </div>
+    </div>
+
+    <script>
+        const totalBlocks = 20; // number of blocks in the bar
+        const progressBar = document.getElementById('progress-bar');
+
+        // Create the blocks
+        for (let i = 0; i < totalBlocks; i++) {
+            const block = document.createElement('div');
+            block.classList.add('block');
+            progressBar.appendChild(block);
+        }
+
+        const blocks = document.querySelectorAll('.block');
+        let index = 0;
+        const duration = 10000; // 10 seconds
+        const intervalTime = duration / totalBlocks;
+
+        const interval = setInterval(() => {
+            if (index < blocks.length) {
+                blocks[index].classList.add('active');
+                index++;
+            } else {
+                clearInterval(interval);
+                // Redirect to homepage
+                window.location.href = "{{ url_for('home') }}";
+            }
+        }, intervalTime);
+    </script>
+</body>
+</html>
