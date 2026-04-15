@@ -1,39 +1,46 @@
 from models.models import db, Figures, Brand, Manufacturer
+from werkzeug.utils import secure_filename
 
+UPLOAD_FOLDER = "static/figure_images"
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 # ------------------- Add Figure -------------------
 def add_figure(form_data):
     required_fields = [
         "figname", "figdesc", "brandID", "manufacturerID",
-        "genre", "series", "figCode", "janCode",
-        "releaseDate", "retailPrice", "avgPrice", "itemSize", "links"
+        "genre", "series", "releaseDate",
+        "retailPrice", "avgPrice", "itemSize", "links"
     ]
 
-    # Check for missing fields
     for field in required_fields:
         if not form_data.get(field):
             return f"Field '{field}' is required."
 
     try:
         new_figure = Figures(
-            name=form_data["figname"],
-            desc=form_data["figdesc"],
+            name=form_data["figname"].strip(),
+            desc=form_data["figdesc"].strip(),
             brandID=int(form_data["brandID"]),
             manufacturerID=int(form_data["manufacturerID"]),
-            genre=form_data["genre"],
-            series=form_data["series"],
-            figCode=form_data["figCode"],
-            janCode=form_data["janCode"],
+            genre=form_data["genre"].strip(),
+            series=form_data["series"].strip(),
             releaseDate=form_data["releaseDate"],
             retailPrice=float(form_data["retailPrice"]),
             avgPrice=float(form_data["avgPrice"]),
-            itemSize=form_data["itemSize"],
-            itemWeight=float(form_data.get("itemWeight", 0)),
-            links=form_data["links"]
+            itemSize=float(form_data["itemSize"]),
+            itemWeight=float(form_data.get("itemWeight") or 0),
+            links=form_data["links"].strip()
         )
 
         db.session.add(new_figure)
         db.session.commit()
-        return None  # No error
+        return None
+
+    except ValueError:
+        db.session.rollback()
+        return "Invalid number format in price/size fields."
 
     except Exception as e:
         db.session.rollback()
@@ -46,3 +53,48 @@ def get_all_brands():
 # ------------------- Get All Manufacturers -------------------
 def get_all_manufacturers():
     return Manufacturer.query.all()
+    
+# ------------------- Add Brand -------------------
+def add_brand(form_data):
+    name = form_data.get("name", "").strip()
+    desc = form_data.get("desc", "").strip()
+
+    if not name or not desc:
+        return "All fields are required."
+
+    if len(name) > 100:
+        return "Brand name too long."
+
+    if len(desc) > 1000:
+        return "Description too long."
+
+    existing = Brand.query.filter_by(name=name).first()
+    if existing:
+        return "Brand already exists."
+
+    db.session.add(Brand(name=name, desc=desc))
+    db.session.commit()
+    return None
+
+
+# ------------------- Add Manufacturer -------------------
+def add_manufacturer(form_data):
+    name = form_data.get("name", "").strip()
+    desc = form_data.get("desc", "").strip()
+
+    if not name or not desc:
+        return "All fields are required."
+
+    if len(name) > 100:
+        return "Manufacturer name too long."
+
+    if len(desc) > 1000:
+        return "Description too long."
+
+    existing = Manufacturer.query.filter_by(name=name).first()
+    if existing:
+        return "Manufacturer already exists."
+
+    db.session.add(Manufacturer(name=name, desc=desc))
+    db.session.commit()
+    return None

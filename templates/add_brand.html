@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Brand</title>
+</head>
+<body>
+
+<h1>Add Brand</h1>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for msg in messages %}
+      <p style="color:red;">{{ msg }}</p>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+
+    <label>Brand Name:</label><br>
+    <input type="text" name="name" required>
+    <br><br>
+
+    <label>Description:</label><br>
+    <textarea name="desc" required></textarea>
+    <br><br>
+
+    <button type="submit">Add Brand</button>
+
+</form>
+
+<br>
+<a href="{{ url_for('home') }}">Back Home</a>
+
+</body>
+</html>

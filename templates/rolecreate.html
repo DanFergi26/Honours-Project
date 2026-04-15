@@ -7,24 +7,36 @@
 <body>
     <h1>Create a New Role</h1>
 
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
+                {{ message }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
 
     <form method="POST">
         <div>
-            <label for="permName">Role Name:</label>
+            <label for="roleName">Role Name:</label>
             <input type="text" id="roleName" name="roleName" required>
         </div>
         <br>
+
         <div>
             <label for="roleDesc">Role Description:</label>
             <textarea id="roleDesc" name="roleDesc" rows="3" cols="30" required></textarea>
         </div>
         <br>
+
         <button type="submit">Create Role</button>
     </form>
-	<br>
-	<a href="/">Go back to Home</a>
+
+    <br>
+    <a href="{{ url_for('home') }}">Back to Home</a>
 </body>
 </html>

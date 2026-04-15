@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create Subcollection</title>
+</head>
+<body>
+
+<h1>Create Subcollection</h1>
+
+{% if message %}
+    <p style="color:red;">{{ message }}</p>
+{% endif %}
+
+<form method="POST">
+
+    <label>Title:</label><br>
+    <input type="text" name="title" required>
+    <br><br>
+
+    <button type="submit">Create Subcollection</button>
+</form>
+
+<hr>
+
+<h2>Your Collection (for reference)</h2>
+
+<ul>
+    {% for item in figures %}
+        <li>Figure ID: {{ item.figure_id }}</li>
+    {% endfor %}
+</ul>
+
+<br>
+<a href="{{ url_for('account') }}">Back to Account</a>
+
+</body>
+</html>

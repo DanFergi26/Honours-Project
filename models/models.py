@@ -1,5 +1,3 @@
-# models/models.py
-
 from flask_sqlalchemy import SQLAlchemy
 from cryptography.fernet import Fernet
 from flask_bcrypt import Bcrypt
@@ -9,7 +7,7 @@ import os
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
-# ------------------- Encryption Setup -------------------
+# ---------------- Encryption Setup ----------------
 
 INSTANCE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "instance")
 os.makedirs(INSTANCE_DIR, exist_ok=True)
@@ -27,39 +25,42 @@ else:
 fernet = Fernet(ENCRYPTION_KEY)
 
 
-# ------------------- User Model -------------------
+# ---------------- USER MODEL ----------------
 
 class User(db.Model):
-    __tablename__ = 'User'
+    __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
 
-    _surname = db.Column("surname", db.LargeBinary, nullable=False)
-    _forename = db.Column("forename", db.LargeBinary, nullable=False)
-    _email = db.Column("email", db.LargeBinary, unique=True, nullable=False)
-    _dob = db.Column("dob", db.LargeBinary, nullable=False)
-    _country = db.Column("country", db.LargeBinary, nullable=False)
-    _bio = db.Column("bio", db.LargeBinary, nullable=True)
+    surname = db.Column(db.LargeBinary, nullable=False)
+    forename = db.Column(db.LargeBinary, nullable=False)
+
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    _email_enc = db.Column(db.LargeBinary, nullable=True)
+
+    dob = db.Column(db.LargeBinary, nullable=False)
+    country = db.Column(db.LargeBinary, nullable=False)
+    bio = db.Column(db.LargeBinary, nullable=True)
 
     password = db.Column(db.String(255), nullable=False)
-    profile_pic = db.Column(db.String(255), nullable=True)
+    profile_pic = db.Column(db.String(255))
 
-    email_code = db.Column(db.String(6), nullable=True)
-    roleID = db.Column(db.Integer, db.ForeignKey('Roles.id'), nullable=True)
-    
+    email_code = db.Column(db.String(6))
+    roleID = db.Column(db.Integer, db.ForeignKey("roles.id"))
+
     failed_attempts = db.Column(db.Integer, default=0)
-    lockout_until = db.Column(db.DateTime, nullable=True)
+    lockout_until = db.Column(db.DateTime)
 
-    # ------------------- Password -------------------
+    # ---------------- Password ----------------
 
     def set_password(self, password):
-        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.password = bcrypt.generate_password_hash(password).decode("utf-8")
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self.password, password)
 
-    # ------------------- Encryption -------------------
+    # ---------------- Encryption ----------------
 
     def encrypt(self, value):
         return fernet.encrypt(value.encode()) if value else None
@@ -67,13 +68,19 @@ class User(db.Model):
     def decrypt(self, value):
         if not value:
             return None
-        try:
-            return fernet.decrypt(value).decode()
-        except Exception:
-            return "[Invalid or old data]"
-            
+        return fernet.decrypt(value).decode()
 
-    # ------------------- Properties -------------------
+    # ---------------- Encrypted Email (optional) ----------------
+
+    @property
+    def email_enc(self):
+        return self._email_enc
+
+    @email_enc.setter
+    def email_enc(self, value):
+        self._email_enc = self.encrypt(value)
+
+    # ---------------- Encrypted fields ----------------
 
     @property
     def surname(self):
@@ -90,14 +97,6 @@ class User(db.Model):
     @forename.setter
     def forename(self, value):
         self._forename = self.encrypt(value)
-
-    @property
-    def email(self):
-        return self.decrypt(self._email)
-
-    @email.setter
-    def email(self, value):
-        self._email = self.encrypt(value)
 
     @property
     def dob(self):
@@ -123,14 +122,15 @@ class User(db.Model):
     def bio(self, value):
         self._bio = self.encrypt(value) if value else None
 
-# ------------------- Login Logs -------------------
+
+# ---------------- LOGIN LOGS ----------------
 
 class LoginLog(db.Model):
-    __tablename__ = 'Login Log'
-    
+    __tablename__ = "login_logs"
+
     id = db.Column(db.Integer, primary_key=True)
 
-    user_id = db.Column(db.Integer, db.ForeignKey('User.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     username_attempted = db.Column(db.String(150))
     ip_address = db.Column(db.String(45))
 
@@ -138,121 +138,110 @@ class LoginLog(db.Model):
     timed_out = db.Column(db.Boolean, default=False)
 
     attempt_time = db.Column(db.DateTime, default=datetime.utcnow)
- 
-# ------------------- Roles & Permissions -------------------
+
+
+# ---------------- ROLES ----------------
 
 class Roles(db.Model):
-    __tablename__ = 'Roles'
+    __tablename__ = "roles"
 
     id = db.Column(db.Integer, primary_key=True)
-    roleName = db.Column(db.String(20), unique=True, nullable=False)
-    roleDesc = db.Column(db.String(200), unique=True, nullable=False)
-
-    permissions = db.relationship(
-        'Permissions',
-        secondary='RolePermissions',
-        back_populates='roles'
-    )
+    roleName = db.Column(db.String(50), unique=True, nullable=False)
+    roleDesc = db.Column(db.String(200), nullable=False)
 
 
 class Permissions(db.Model):
-    __tablename__ = 'Permissions'
+    __tablename__ = "permissions"
 
     id = db.Column(db.Integer, primary_key=True)
-    permName = db.Column(db.String(20), unique=True, nullable=False)
-    permDesc = db.Column(db.String(100), unique=True, nullable=False)
-
-    roles = db.relationship(
-        'Roles',
-        secondary='RolePermissions',
-        back_populates='permissions'
-    )
+    permName = db.Column(db.String(50), unique=True, nullable=False)
+    permDesc = db.Column(db.String(200), nullable=False)
 
 
 class RolePermissions(db.Model):
-    __tablename__ = 'RolePermissions'
+    __tablename__ = "role_permissions"
 
-    roleID = db.Column(db.Integer, db.ForeignKey('Roles.id'), primary_key=True)
-    permissionsID = db.Column(db.Integer, db.ForeignKey('Permissions.id'), primary_key=True)
+    roleID = db.Column(db.Integer, db.ForeignKey("roles.id"), primary_key=True)
+    permissionsID = db.Column(db.Integer, db.ForeignKey("permissions.id"), primary_key=True)
 
 
-# ------------------- Figures -------------------
+# ---------------- FIGURES ----------------
 
 class Figures(db.Model):
-    __tablename__ = 'Figures'
+    __tablename__ = "figures"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True, nullable=False)
     desc = db.Column(db.String(1000), nullable=False)
 
-    brandID = db.Column(db.Integer, db.ForeignKey('Brand.id'), nullable=False)
-    manufacturerID = db.Column(db.Integer, db.ForeignKey('Manufacturer.id'), nullable=False)
+    brandID = db.Column(db.Integer, db.ForeignKey("brand.id"))
+    manufacturerID = db.Column(db.Integer, db.ForeignKey("manufacturer.id"))
 
-    genre = db.Column(db.String(50), nullable=False)
-    series = db.Column(db.String(50), nullable=False)
+    genre = db.Column(db.String(50))
+    series = db.Column(db.String(50))
 
-    figCode = db.Column(db.Integer, nullable=False)
-    janCode = db.Column(db.Integer, nullable=False)
+    releaseDate = db.Column(db.String(50))
 
-    releaseDate = db.Column(db.String(50), nullable=False)
+    retailPrice = db.Column(db.Float)
+    avgPrice = db.Column(db.Float)
 
-    retailPrice = db.Column(db.Integer, nullable=False)
-    avgPrice = db.Column(db.Integer, nullable=False)
+    itemSize = db.Column(db.Float)
+    itemWeight = db.Column(db.Float)
 
-    itemSize = db.Column(db.Integer, nullable=False)
-    itemWeight = db.Column(db.Integer, nullable=False)
+    images = db.relationship("FigureImages", backref="figure", lazy=True)
+    links = db.Column(db.String(2000))
 
-    links = db.Column(db.String(2000), nullable=False)
+class FigureImages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
 
-    # Relationships
-    brand = db.relationship("Brand", backref="figures")
-    manufacturer = db.relationship("Manufacturer", backref="figures")
+    figure_id = db.Column(db.Integer, db.ForeignKey("figures.id"), nullable=False)
 
-    collection = db.relationship(
-        'Collection',
-        secondary='FigureCollection',
-        back_populates='figures'
-    )
-
-
+    image_path = db.Column(db.String(255), nullable=False)
+    
 class Brand(db.Model):
-    __tablename__ = 'Brand'
+    __tablename__ = "brand"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    desc = db.Column(db.String(1000), unique=True, nullable=False)
-
-    manufacturerID = db.Column(db.Integer, db.ForeignKey('Manufacturer.id'), nullable=False)
+    name = db.Column(db.String(100), unique=True)
+    desc = db.Column(db.String(1000))
 
 
 class Manufacturer(db.Model):
-    __tablename__ = 'Manufacturer'
+    __tablename__ = "manufacturer"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
-    desc = db.Column(db.String(1000), unique=True, nullable=False)
+    name = db.Column(db.String(100), unique=True)
+    desc = db.Column(db.String(1000))
 
+# ---------------- COLLECTIONS ----------------
+   
+class UserCollection(db.Model):
+    __tablename__ = "user_collections"
 
-# ------------------- Collections -------------------
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    figure_id = db.Column(db.Integer, db.ForeignKey("figures.id"))
+    
+class SubCollection(db.Model):
+    __tablename__ = "subcollections"
 
-class Collection(db.Model):
-    __tablename__ = 'Collection'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    title = db.Column(db.String(150), nullable=False)
+    
+class SubCollectionItem(db.Model):
+    __tablename__ = "subcollection_items"
 
     id = db.Column(db.Integer, primary_key=True)
 
-    worth = db.Column(db.Integer, nullable=False)
-
-    userID = db.Column(db.Integer, db.ForeignKey('User.id'))
-
-    figures = db.relationship(
-        'Figures',
-        secondary='FigureCollection',
-        back_populates='collection'
+    subcollection_id = db.Column(
+        db.Integer,
+        db.ForeignKey("subcollections.id"),
+        nullable=False
     )
 
-
-class FigureCollection(db.Model):
-    __tablename__ = 'FigureCollection'
-
-    figuresID = db.Column(db.Integer, db.ForeignKey('Figures.id'), primary_key=True)
-    collectionID = db.Column(db.Integer, db.ForeignKey('Collection.id'), primary_key=True)
+    figure_id = db.Column(
+        db.Integer,
+        db.ForeignKey("figures.id"),
+        nullable=False
+    )

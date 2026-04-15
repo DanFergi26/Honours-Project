@@ -6,163 +6,105 @@
 </head>
 
 <body>
-    <header>
 
-        <!-- Authentication Container -->
-        {% if session.get('logged_in') %}
-            <!-- Show user info when logged in -->
-            <div class="auth-container">
-                <div class="profile-icon">
-                    <a href="">
-                        <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.png')) }}" alt="Profile Picture" width="50">
-                    </a>
-                </div>
-                <span>{{ session.get('username') }}</span>
-            </div>
-        {% else %}
-            <!-- Show login form when NOT logged in -->
-            <div class="auth-container">
-                <form method="POST" action="{{ url_for('login') }}">
-                    <input type="text" name="username" placeholder="Enter username" required>
-                    <input type="password" name="password" placeholder="Enter password" required>
-                    <button type="submit">Login</button>
-                </form>
-
-                <div id="loginMessage">{{ message }}</div>
-
-                <a href="{{ url_for('signup') }}">
-                    <button type="button">Sign Up</button>
-                </a>
-            </div>
-        {% endif %}
-
-    </header>
-
-    <hr>
-
-    <div class="signup-menu">
-        <div class="login-container">
-            <h2>Add Figure</h2>
-
-            <form action="/addfigure" method="post">
-
-                <div class="signinup-form">
-                    <label for="figname">Name:</label>
-                    <input type="text" id="figname" name="figname" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="figdesc">Description:</label>
-                    <input type="text" id="figdesc" name="figdesc" required>
-                </div>
-
-                <br>
-
-                <label for="brandID">Select Brand:</label>
-                <select name="brandID" id="brandID" required>
-                    <option value="">--Choose Brand--</option>
-                    {% for b in brand %}
-                        <option value="{{ b.id }}">{{ b.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <br><br>
-
-                <label for="manufacturerID">Select Manufacturer:</label>
-                <select name="manufacturerID" id="manufacturerID" required>
-                    <option value="">--Choose Manufacturer--</option>
-                    {% for m in manufacturer %}
-                        <option value="{{ m.id }}">{{ m.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <br><br>
-
-                <div class="signinup-form">
-                    <label for="genre">Genre:</label>
-                    <input type="text" id="genre" name="genre" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="series">Series:</label>
-                    <input type="text" id="series" name="series" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="figCode">Figure Code:</label>
-                    <input type="number" id="figCode" name="figCode" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="janCode">JAN Code:</label>
-                    <input type="number" id="janCode" name="janCode" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="releaseDate">Release Date:</label>
-                    <input type="date" id="releaseDate" name="releaseDate" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="retailPrice">Retail Price:</label>
-                    <input type="number" id="retailPrice" name="retailPrice" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="avgPrice">Second Hand Market Price (Average):</label>
-                    <input type="number" id="avgPrice" name="avgPrice" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="itemSize">Figure Size (cm):</label>
-                    <input type="number" id="itemSize" name="itemSize" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="itemWeight">Figure Weight (g):</label>
-                    <input type="number" id="itemWeight" name="itemWeight" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <label for="links">Purchase Links:</label>
-                    <input type="text" id="links" name="links" required>
-                </div>
-
-                <br>
-
-                <div class="signinup-form">
-                    <input type="submit" value="Add Figure">
-                </div>
-
-            </form>
+<header>
+    {% if session.get('logged_in') %}
+        <div>
+            <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.png')) }}"
+                 width="50">
+            <span>{{ session.get('username') }}</span>
         </div>
-    </div>
+    {% endif %}
+</header>
+
+<hr>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul style="color: red;">
+      {% for msg in messages %}
+        <li>{{ msg }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+<h2>Add Figure</h2>
+
+<form method="POST" action="/addfigure" enctype="multipart/form-data">
+
+    <label>Name:</label><br>
+    <input type="text" name="figname" required>
+    <br><br>
+
+    <label>Description:</label><br>
+    <input type="text" name="figdesc" required>
+    <br><br>
+
+    <label>Brand:</label><br>
+    <select name="brandID" required>
+        <option value="">--Choose Brand--</option>
+        {% for b in brand %}
+            <option value="{{ b.id }}">{{ b.name }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label>Manufacturer:</label><br>
+    <select name="manufacturerID" required>
+        <option value="">--Choose Manufacturer--</option>
+        {% for m in manufacturer %}
+            <option value="{{ m.id }}">{{ m.name }}</option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label>Genre:</label><br>
+    <input type="text" name="genre" required>
+    <br><br>
+
+    <label>Series:</label><br>
+    <input type="text" name="series" required>
+    <br><br>
+
+    <label>Release Date:</label><br>
+    <input type="date" name="releaseDate" required>
+    <br><br>
+
+    <label>Retail Price:</label><br>
+    <input type="number" step="0.01" name="retailPrice" required>
+    <br><br>
+
+    <label>Average Price:</label><br>
+    <input type="number" step="0.01" name="avgPrice" required>
+    <br><br>
+
+    <label>Size (cm):</label><br>
+    <input type="number" step="0.1" name="itemSize" required>
+    <br><br>
+
+    <label>Weight (g) (optional):</label><br>
+    <input type="number" step="0.1" name="itemWeight">
+    <br><br>
+
+    <!-- IMAGE UPLOAD -->
+    <label>Upload Images (1–5 required):</label><br>
+    <input type="file" name="images" accept="image/*" multiple required>
+    <p>Minimum 1 image, maximum 5 images allowed.</p>
 
     <br><br>
-    <hr>
 
-    <footer>&copy;</footer>
+    <label>Links:</label><br>
+    <input type="text" name="links" required>
+    <br><br>
 
-    <br>
+    <button type="submit">Add Figure</button>
+
+</form>
+
+<br><br>
+<a href="/">Go back to Home</a>
+
 </body>
 </html>

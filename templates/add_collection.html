@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Add to Collection</title>
+</head>
+<body>
+
+<h1>Add Figures to Collection</h1>
+
+<form method="GET">
+    <input type="text" name="q" placeholder="Search figures...">
+    <button type="submit">Search</button>
+</form>
+
+<hr>
+
+{% if results %}
+    <ul>
+        {% for fig in results %}
+            <li>
+                <strong>{{ fig.name }}</strong>
+
+                <form method="POST" style="display:inline;">
+                    <input type="hidden" name="figure_id" value="{{ fig.id }}">
+                    <button type="submit">Add</button>
+                </form>
+
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No results found.</p>
+{% endif %}
+
+<br>
+<a href="{{ url_for('account') }}">Back to Account</a>
+
+</body>
+</html>

@@ -45,3 +45,4 @@ def send_login_alert_email(to_email, location, change_password_url):
         print(f"Login alert email sent to {to_email}")
     except Exception as e:
         print("Error sending login alert email:", e)
+        

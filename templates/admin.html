@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+</head>
+<body>
+
+<h1>Admin Panel</h1>
+
+<ul>
+    <li><a href="{{ url_for('rolecreate') }}">Create Role</a></li>
+    <li><a href="{{ url_for('permcreate') }}">Create Permission</a></li>
+    <li><a href="{{ url_for('roleassign') }}">Assign Permission to Role</a></li>
+    <li><a href="{{ url_for('assignuser') }}">Assign Role to User</a></li>
+	 <li><a href="{{ url_for('users') }}">View Users</a></li>
+</ul>
+
+<br>
+<a href="{{ url_for('home') }}">Back to Home</a>
+
+</body>
+</html>

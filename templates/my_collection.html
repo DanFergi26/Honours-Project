@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>My Collection</title>
+</head>
+<body>
+
+<h1>My Collection</h1>
+
+{% if figures %}
+    <ul>
+        {% for fig in figures %}
+            <li>
+                <strong>{{ fig.name }}</strong><br>
+                {{ fig.desc }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>Your collection is empty.</p>
+{% endif %}
+
+<br>
+<a href="{{ url_for('account') }}">Back to Account</a>
+
+</body>
+</html>

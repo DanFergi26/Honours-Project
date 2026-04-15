@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Subcollection</title>
+</head>
+<body>
+
+<h1>Edit Subcollection</h1>
+
+<form method="POST">
+
+    <label>Title:</label><br>
+    <input type="text" name="title" value="{{ subcollection.title }}" required>
+    <br><br>
+
+    <button type="submit">Save Changes</button>
+
+</form>
+
+<hr>
+
+<h2>Your Collection</h2>
+
+{% for fig in figures %}
+    <div>
+        <p>{{ fig.name }}</p>
+
+        {% if fig.id in existing %}
+            <button disabled>Added</button>
+        {% else %}
+            <form method="POST" action="{{ url_for('add_to_subcollection') }}">
+                <input type="hidden" name="subcollection_id" value="{{ subcollection.id }}">
+                <input type="hidden" name="figure_id" value="{{ fig.id }}">
+                <button type="submit">Add</button>
+            </form>
+        {% endif %}
+    </div>
+{% endfor %}
+
+<br>
+
+<a href="{{ url_for('account') }}">Back</a>
+
+</body>
+</html>

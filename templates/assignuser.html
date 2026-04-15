@@ -5,27 +5,46 @@
     <title>Assign Role</title>
 </head>
 <body>
+
     <h1>Assign Role to User</h1>
+
     {% if message %}
-        <p>{{ message }}</p>
+        <p style="color:red;">{{ message }}</p>
     {% endif %}
+
     <form method="POST">
-        <label for="empid">Enter Employee ID:</label>
-        <input type="text" name="empid" id="empid" required>
+
+        <!-- USER SELECTION (FIXED: matches backend "username") -->
+        <label for="username">Select User:</label>
+        <select name="username" id="username" required>
+            {% for user in users %}
+                <option value="{{ user.username }}">
+                    {{ user.username }} ({{ user.email }})
+                </option>
+            {% endfor %}
+        </select>
+
         <br><br>
 
+        <!-- ROLE SELECTION -->
         <label for="role_id">Select Role:</label>
         <select name="role_id" id="role_id" required>
             {% for role in roles %}
-                <option value="{{ role.id }}">{{ role.roleName }}</option>
+                <option value="{{ role.id }}">
+                    {{ role.roleName }}
+                </option>
             {% endfor %}
         </select>
+
         <br><br>
 
         <button type="submit">Assign Role</button>
+
     </form>
-	<br>
-	<a href="/">Go back to Home</a>
+
+    <br>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+
 </body>
 </html>
 
