@@ -3,32 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <title>Add to Collection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
 
+    <!-- Left: Logo -->
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo"></a>
+    </div>
+
+    <!-- Center: Nav Links -->
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+		<a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <!-- Right: Search + Profile -->
+    <div class="nav-right">
+
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}"><img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}"></a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Divider -->
+<div class="divider"></div>
+<div class="page-container">
 <h1>Add Figures to Collection</h1>
 
 <form method="GET">
-    <input type="text" name="q" placeholder="Search figures...">
-    <button type="submit">Search</button>
+    <input type="text" name="q" placeholder="Search figures..." class="search-bar">
 </form>
 
 <hr>
 
 {% if results %}
-    <ul>
-        {% for fig in results %}
-            <li>
-                <strong>{{ fig.name }}</strong>
 
-                <form method="POST" style="display:inline;">
-                    <input type="hidden" name="figure_id" value="{{ fig.id }}">
-                    <button type="submit">Add</button>
-                </form>
+<div class="figure-grid">
 
-            </li>
-        {% endfor %}
-    </ul>
+    {% for fig in results %}
+
+    <div class="figure-card">
+
+        <a href="{{ url_for('figure_view', figure_id=fig.id) }}" class="figure-card-link">
+
+            {% if fig.images and fig.images|length > 0 %}
+                <img src="{{ url_for('static', filename='figure_images/' ~ fig.images[0].image_path) }}"
+                     class="figure-img">
+            {% endif %}
+
+            <p class="figure-name">{{ fig.name }}</p>
+
+        </a>
+
+        {% if fig.id in existing_ids %}
+			<span class="already-added">Already Added</span>
+		{% else %}
+			<button type="submit" class="small-button">Add</button>
+		{% endif %}
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
 {% else %}
     <p>No results found.</p>
 {% endif %}
@@ -36,5 +89,6 @@
 <br>
 <a href="{{ url_for('account') }}">Back to Account</a>
 
+</div>
 </body>
 </html>

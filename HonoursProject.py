@@ -575,36 +575,46 @@ def add_collection():
     if not user:
         return redirect(url_for("login"))
 
-    query = request.args.get("q", "").strip()
+    if request.method == "POST":
+        figure_id = request.form.get("figure_id")
 
-    results = []
+        if figure_id:
+            exists = UserCollection.query.filter_by(
+                user_id=user.id,
+                figure_id=figure_id
+            ).first()
+
+            # only add if NOT already in collection
+            if not exists:
+                db.session.add(UserCollection(
+                    user_id=user.id,
+                    figure_id=figure_id
+                ))
+                db.session.commit()
+
+        return redirect(url_for("add_collection"))
+
+ 
+    query = request.args.get("q", "")
+
     if query:
         results = Figures.query.filter(
             Figures.name.ilike(f"%{query}%")
         ).all()
+    else:
+        results = []
 
-    if request.method == "POST":
-        figure_id = request.form.get("figure_id")
+    existing_ids = set(
+        row.figure_id
+        for row in UserCollection.query.filter_by(user_id=user.id).all()
+    )
 
-        if not figure_id:
-            return redirect(url_for("add_collection"))
-
-        # prevent duplicates
-        exists = UserCollection.query.filter_by(
-            user_id=user.id,
-            figure_id=figure_id
-        ).first()
-
-        if not exists:
-            db.session.add(UserCollection(
-                user_id=user.id,
-                figure_id=figure_id
-            ))
-            db.session.commit()
-
-        return redirect(url_for("add_collection"))
-
-    return render_template("add_collection.html", results=results)
+    return render_template(
+        "add_collection.html",
+        results=results,
+        existing_ids=existing_ids,
+        query=query
+    )
     
     
 @app.route("/create_subcollection", methods=["GET", "POST"])
@@ -613,22 +623,67 @@ def create_subcollection():
     if not user:
         return redirect(url_for("login"))
 
-    figures = UserCollection.query.filter_by(user_id=user.id).all()
+    # GET → show page
+    if request.method == "GET":
 
-    if request.method == "POST":
-        title = request.form.get("title", "").strip()
+        user_figures = (
+            db.session.query(Figures)
+            .join(UserCollection, UserCollection.figure_id == Figures.id)
+            .filter(UserCollection.user_id == user.id)
+            .all()
+        )
 
-        if not title:
-            return render_template("create_subcollection.html", figures=figures, message="Title required")
+        return render_template(
+            "create_subcollection.html",
+            figures=user_figures
+        )
 
-        sub = SubCollection(user_id=user.id, title=title)
-        db.session.add(sub)
-        db.session.commit()
+    # POST → create subcollection
+    title = request.form.get("title", "").strip()
+    if not title:
+        return render_template(
+            "create_subcollection.html",
+            figures=[],
+            message="Title is required"
+        )
 
-        return redirect(url_for("account"))
+    # handle image upload
+    file = request.files.get("image")
+    filename = None
 
-    return render_template("create_subcollection.html", figures=figures)
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        path = os.path.join("static/subimg", filename)
+        file.save(path)
 
+    # create subcollection FIRST
+    sub = SubCollection(
+        user_id=user.id,
+        title=title,
+        image=filename
+    )
+
+    db.session.add(sub)
+    db.session.commit()  # IMPORTANT so sub.id exists
+
+    # supports multiple figures (checkbox / list)
+    figure_ids = request.form.getlist("figure_ids")
+
+    # fallback: single add button support
+    single_id = request.form.get("figure_id")
+    if single_id and not figure_ids:
+        figure_ids = [single_id]
+
+    for fid in figure_ids:
+        db.session.add(SubCollectionItem(
+            subcollection_id=sub.id,
+            figure_id=int(fid)
+        ))
+
+    db.session.commit()
+
+    return redirect(url_for("account"))
+    
 @app.route("/subcollection/add", methods=["POST"])
 def add_to_subcollection():
     user = get_current_user()
@@ -673,13 +728,76 @@ def subcollection(id):
 
     return render_template("subcollection.html", sub=sub, figures=figures)
     
-@app.route("/subcollection/<int:id>/edit", methods=["GET"])
+@app.route("/subcollection/<int:id>/edit", methods=["GET", "POST"])
 def edit_subcollection(id):
     user = get_current_user()
 
     subcollection = SubCollection.query.get_or_404(id)
 
-    # ONLY user's figures
+    if subcollection.user_id != user.id:
+        return "Access Denied", 403
+
+    # =========================
+    # HANDLE FORM ACTIONS
+    # =========================
+    if request.method == "POST":
+
+        action = request.form.get("action")
+
+        # ---- update title/image ----
+        if action == "update":
+            subcollection.title = request.form.get("title")
+
+            file = request.files.get("image")
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                path = os.path.join("static/subimg", filename)
+                file.save(path)
+                subcollection.image = filename
+
+            db.session.commit()
+            return redirect(url_for("edit_subcollection", id=id))
+
+        # ---- add figure ----
+        if action == "add":
+            fig_id = int(request.form.get("figure_id"))
+
+            exists = SubCollectionItem.query.filter_by(
+                subcollection_id=id,
+                figure_id=fig_id
+            ).first()
+
+            if not exists:
+                db.session.add(SubCollectionItem(
+                    subcollection_id=id,
+                    figure_id=fig_id
+                ))
+                db.session.commit()
+
+            return redirect(url_for("edit_subcollection", id=id))
+
+        # ---- remove figure ----
+        if action == "remove":
+            fig_id = int(request.form.get("figure_id"))
+
+            link = SubCollectionItem.query.filter_by(
+                subcollection_id=id,
+                figure_id=fig_id
+            ).first()
+
+            if link:
+                db.session.delete(link)
+                db.session.commit()
+
+            return redirect(url_for("edit_subcollection", id=id))
+
+        # ---- delete subcollection ----
+        if action == "delete":
+            SubCollectionItem.query.filter_by(subcollection_id=id).delete()
+            db.session.delete(subcollection)
+            db.session.commit()
+            return redirect(url_for("account"))
+
     user_figures = (
         db.session.query(Figures)
         .join(UserCollection)
@@ -687,7 +805,6 @@ def edit_subcollection(id):
         .all()
     )
 
-    # already in subcollection
     existing = {
         item.figure_id
         for item in SubCollectionItem.query.filter_by(subcollection_id=id).all()
@@ -729,6 +846,16 @@ def admin():
         permissions=permissions,
         users=users
     )
+ 
+# ------------------- Figure -------------------
+@app.route("/figure/<int:figure_id>")
+def figure_view(figure_id):
+    fig = Figures.query.get_or_404(figure_id)
+
+    return render_template(
+        "figure_view.html",
+        fig=fig
+    ) 
     
 # ------------------- Run App -------------------
 if __name__ == "__main__":

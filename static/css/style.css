@@ -461,6 +461,92 @@ a {
     text-shadow: 0 0 10px #00ffff;
 }
 
+.account-button-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.account-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 20px;
+    border: 2px solid #00ffff;
+    background-color: transparent;
+    color: #00ffff;
+
+    font-size: 18px;
+    text-align: center;
+
+    transition: 0.25s;
+}
+
+.account-button:hover {
+    background-color: #00ffff;
+    color: black;
+    box-shadow: 0 0 15px #00ffff;
+    transform: scale(1.05);
+}
+
+/* =========================
+   SUBCOLLECTION CARDS
+========================= */
+
+.subcollection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.subcollection-card {
+    border: 2px solid #00ffff;
+    padding: 10px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.subcollection-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffff;
+}
+
+.subcollection-card img {
+    width: 75%;
+    height: 140px;
+    object-fit: cover;
+    border: 1px solid #00ffff;
+}
+
+.sub-placeholder {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #00ffff;
+}
+
+.sub-title {
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+.sub-edit-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    text-decoration: none;
+}
+
+.sub-edit-btn:hover {
+    background: #00ffff;
+    color: black;
+}
+
 /* =========================
    PROFILE VIEW
 ========================= */
@@ -523,4 +609,89 @@ a {
     color: black;
     transform: scale(1.02);
     box-shadow: 0 0 15px #00ffff;
+}
+/* =========================
+   FIGURE VIEW PAGE
+========================= */
+
+.figview-container {
+    margin: 40px;
+    color: #00ffff;
+}
+
+.figview-title {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.figview-slider {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    height: 500px;
+    margin: auto;
+    border: 2px solid #00ffff;
+    overflow: hidden;
+    background: black;
+}
+
+.figview-slide {
+    display: none;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.figview-slide.active {
+    display: block;
+}
+
+.figview-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 40px;
+    color: #00ffff;
+    cursor: pointer;
+}
+
+.figview-arrow.left { left: 10px; }
+.figview-arrow.right { right: 10px; }
+
+.figview-dots {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.figview-dot {
+    height: 10px;
+    width: 10px;
+    margin: 5px;
+    display: inline-block;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+}
+
+.figview-dot.active {
+    background: red;
+    box-shadow: 0 0 10px red;
+}
+
+.figview-info {
+    margin-top: 30px;
+    border: 1px solid #00ffff;
+    padding: 20px;
+}
+
+.page-container {
+    margin: 20px 60px;   
+}
+
+.already-added {
+    color: #00ffff;
+    margin-top: 10px;
+    font-weight: bold;
 }

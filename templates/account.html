@@ -62,35 +62,54 @@
     <hr class="account-divider">
 
     <div class="account-section">
-        <h2>Collections</h2>
+    <h2>Collections</h2>
 
-        <ul class="account-list">
-            <li><a href="{{ url_for('my_collection') }}">My Collection</a></li>
-            <li><a href="{{ url_for('add_collection') }}">Add Collection</a></li>
-            <li><a href="{{ url_for('create_subcollection') }}">Create Subcollection</a></li>
-        </ul>
+    <div class="account-button-grid">
+
+        <a class="account-button" href="{{ url_for('my_collection') }}">
+            My Collection
+        </a>
+
+        <a class="account-button" href="{{ url_for('add_collection') }}">
+            Add Collection
+        </a>
+
+        <a class="account-button" href="{{ url_for('create_subcollection') }}">
+            Create Subcollection
+        </a>
+
     </div>
+	</div>
 
     <hr class="account-divider">
 
     <div class="account-section">
         <h2>My Subcollections</h2>
 
-        {% if subcollections %}
-            <ul class="account-list">
-                {% for sc in subcollections %}
-                    <li>
-                        <a href="{{ url_for('subcollection', id=sc.id) }}">
-                            {{ sc.title }}
-                        </a>
-                        |
-                        <a href="{{ url_for('edit_subcollection', id=sc.id) }}">Edit</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No subcollections yet.</p>
-        {% endif %}
+        <div class="subcollection-grid">
+
+    {% for sc in subcollections %}
+        
+		<div class="subcollection-card">
+		<a href="{{ url_for('view_public_subcollection', username=profile_user.username, sub_id=sc.id) }}">
+            {% if sc.image %}
+                <img src="{{ url_for('static', filename='subimg/' + sc.image) }}">
+            {% else %}
+                <div class="sub-placeholder">No Image</div>
+            {% endif %}
+
+            <div class="sub-title">{{ sc.title }}</div>
+
+            <a class="sub-edit-btn"
+               href="{{ url_for('edit_subcollection', id=sc.id) }}">
+                Edit
+            </a>
+
+        </div>
+		</a>
+    {% endfor %}
+
+</div>
     </div>
 
     <hr class="account-divider">

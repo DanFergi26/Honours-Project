@@ -231,6 +231,7 @@ class SubCollection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     title = db.Column(db.String(150), nullable=False)
+    image = db.Column(db.String(255))
     
 class SubCollectionItem(db.Model):
     __tablename__ = "subcollection_items"

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ fig.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="figview-container">
+
+    <!-- TITLE -->
+    <h1 class="figview-title">{{ fig.name }}</h1>
+
+    <!-- IMAGE SLIDER -->
+    <div class="figview-slider">
+
+        {% for img in fig.images %}
+            <img src="{{ url_for('static', filename='figure_images/' ~ img.image_path) }}"
+                 class="figview-slide {% if loop.first %}active{% endif %}">
+        {% endfor %}
+
+        <button class="figview-arrow left" onclick="changeSlide(-1)">&#10094;</button>
+        <button class="figview-arrow right" onclick="changeSlide(1)">&#10095;</button>
+
+    </div>
+
+    <!-- DOTS -->
+    <div class="figview-dots">
+        {% for img in fig.images %}
+            <span class="figview-dot {% if loop.first %}active{% endif %}"
+                  onclick="setSlide({{ loop.index0 }})"></span>
+        {% endfor %}
+    </div>
+
+    <!-- INFO SECTION -->
+    <div class="figview-info">
+
+        <p><strong>Description:</strong> {{ fig.desc }}</p>
+        <p><strong>Brand:</strong> {{ fig.brand.name if fig.brand else "N/A" }}</p>
+        <p><strong>Manufacturer:</strong> {{ fig.manufacturer.name if fig.manufacturer else "N/A" }}</p>
+
+        <p><strong>Genre:</strong> {{ fig.genre }}</p>
+        <p><strong>Series:</strong> {{ fig.series }}</p>
+
+        <p><strong>Release Date:</strong> {{ fig.releaseDate }}</p>
+
+        <p><strong>Retail Price:</strong> £{{ fig.retailPrice }}</p>
+        <p><strong>Average Price:</strong> £{{ fig.avgPrice }}</p>
+
+        <p><strong>Size:</strong> {{ fig.itemSize }} cm</p>
+        <p><strong>Weight:</strong> {{ fig.itemWeight }} g</p>
+
+        {% if fig.links %}
+            <p><strong>Links:</strong>
+                <a href="{{ fig.links }}" target="_blank">External Link</a>
+            </p>
+        {% endif %}
+
+    </div>
+
+    <br>
+    <a href="{{ url_for('home') }}">Back Home</a>
+
+</div>
+
+<script>
+let currentSlide = 0;
+const slides = document.getElementsByClassName("figview-slide");
+const dots = document.getElementsByClassName("figview-dot");
+
+function showSlide(index) {
+    if (slides.length === 0) return;
+
+    if (index >= slides.length) currentSlide = 0;
+    if (index < 0) currentSlide = slides.length - 1;
+
+    for (let i = 0; i < slides.length; i++) {
+        slides[i].classList.remove("active");
+        dots[i].classList.remove("active");
+    }
+
+    slides[currentSlide].classList.add("active");
+    dots[currentSlide].classList.add("active");
+}
+
+function changeSlide(dir) {
+    currentSlide += dir;
+    showSlide(currentSlide);
+}
+
+function setSlide(index) {
+    currentSlide = index;
+    showSlide(currentSlide);
+}
+</script>
+
+</body>
+</html>

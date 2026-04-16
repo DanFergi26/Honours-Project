@@ -3,8 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Create Subcollection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
+
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <div class="nav-right">
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="page-container">
 
 <h1>Create Subcollection</h1>
 
@@ -12,27 +50,90 @@
     <p style="color:red;">{{ message }}</p>
 {% endif %}
 
-<form method="POST">
+<!-- =========================
+     FULL FORM (TITLE + IMAGE + FIGURES)
+========================= -->
+<form method="POST" enctype="multipart/form-data">
 
     <label>Title:</label><br>
     <input type="text" name="title" required>
+
     <br><br>
 
+    <label>Subcollection Image:</label><br>
+    <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp">
+
+    <br><br>
+
+    <h2>Your Collection</h2>
+
+    <div class="figure-grid">
+
+        {% for item in figures %}
+        <div class="figure-card">
+
+            {% if item.images and item.images|length > 0 %}
+                <img src="{{ url_for('static', filename='figure_images/' ~ item.images[0].image_path) }}"
+                     class="figure-img">
+            {% endif %}
+
+            <p class="figure-name">{{ item.name }}</p>
+
+            <button type="button"
+                    class="small-button"
+                    onclick="toggleFigure({{ item.id }}, this)">
+                Add
+            </button>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <!-- Selected figure IDs get injected here -->
+    <div id="selectedFigures"></div>
+
+    <br>
     <button type="submit">Create Subcollection</button>
+
 </form>
-
-<hr>
-
-<h2>Your Collection (for reference)</h2>
-
-<ul>
-    {% for item in figures %}
-        <li>Figure ID: {{ item.figure_id }}</li>
-    {% endfor %}
-</ul>
 
 <br>
 <a href="{{ url_for('account') }}">Back to Account</a>
+
+</div>
+
+<!-- =========================
+     FIGURE SELECT LOGIC
+========================= -->
+<script>
+let selected = new Set();
+
+function toggleFigure(id, btn) {
+    if (selected.has(id)) {
+        selected.delete(id);
+        btn.innerText = "Add";
+    } else {
+        selected.add(id);
+        btn.innerText = "Added";
+    }
+
+    updateHiddenInputs();
+}
+
+function updateHiddenInputs() {
+    const container = document.getElementById("selectedFigures");
+    container.innerHTML = "";
+
+    selected.forEach(id => {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "figure_ids";
+        input.value = id;
+        container.appendChild(input);
+    });
+}
+</script>
 
 </body>
 </html>
