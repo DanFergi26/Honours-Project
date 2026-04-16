@@ -190,6 +190,9 @@ class Figures(db.Model):
 
     images = db.relationship("FigureImages", backref="figure", lazy=True)
     links = db.Column(db.String(2000))
+    
+    brand = db.relationship("Brand", backref="figures")
+    manufacturer = db.relationship("Manufacturer", backref="figures")
 
 class FigureImages(db.Model):
     id = db.Column(db.Integer, primary_key=True)

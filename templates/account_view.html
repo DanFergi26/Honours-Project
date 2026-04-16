@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ profile_user.username }}'s Account</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
+
+    <!-- Left: Logo -->
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo"></a>
+    </div>
+
+    <!-- Center: Nav Links -->
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+		<a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <!-- Right: Search + Profile -->
+    <div class="nav-right">
+
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}"><img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}"></a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Divider -->
+<div class="divider"></div>
+
+<div class="account-page">
+
+    <!-- TITLE -->
+    <h1 class="account-title">
+        {{ profile_user.username }}'s Account
+    </h1>
+
+    <p class="account-subtitle">
+        Viewing public profile of <strong>{{ profile_user.username }}</strong>
+    </p>
+
+    <hr class="account-divider">
+
+    <!-- =========================
+         COLLECTIONS (FIGURES)
+    ========================== -->
+    <div class="account-section">
+        <h2>Collection</h2>
+
+        {% if figures %}
+            <div class="figure-grid">
+
+                {% for f in figures %}
+                    <div class="figure-card">
+
+                        {% if f.images and f.images|length > 0 %}
+                            <img src="{{ url_for('static', filename='figure_images/' + f.images[0].image_path) }}"
+                                 alt="{{ f.name }}">
+                        {% else %}
+                            <div class="no-image">No Image</div>
+                        {% endif %}
+
+                        <p>{{ f.name }}</p>
+
+                    </div>
+                {% endfor %}
+
+            </div>
+        {% else %}
+            <p>No figures in this collection.</p>
+        {% endif %}
+    </div>
+
+    <hr class="account-divider">
+
+    <!-- =========================
+         SUBCOLLECTIONS
+    ========================== -->
+    <div class="account-section">
+    <h2>Subcollections</h2>
+
+    {% if subcollections %}
+        <ul class="account-list">
+            {% for sc in subcollections %}
+                <li>
+                    <a href="{{ url_for('view_public_subcollection',
+                                       username=profile_user.username,
+                                       sub_id=sc.id) }}">
+                        {{ sc.title }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No subcollections yet.</p>
+    {% endif %}
+	</div>
+
+    <hr class="account-divider">
+
+    <!-- BACK LINK -->
+    <div class="account-links">
+        <a href="{{ url_for('home') }}">Back to Home</a>
+    </div>
+
+</div>
+
+</body>
+</html>

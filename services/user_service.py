@@ -1,4 +1,8 @@
 from models.models import db, User, RolePermissions, LoginLog
+import os
+import uuid
+from config import PROFILE_PICS_FOLDER
+from werkzeug.utils import secure_filename
 from flask_bcrypt import generate_password_hash, check_password_hash
 from flask import url_for, session
 from services.email_service import send_verification_email, send_login_alert_email
@@ -44,7 +48,7 @@ def get_location_from_ip(ip):
 
 
 # ---------------- Signup ----------------
-def register_user(form_data):
+def register_user(form_data, files):
 
     username = safe_string(form_data.get("username"), 50)
     email = safe_string(form_data.get("email"), 255)
@@ -60,15 +64,30 @@ def register_user(form_data):
     if password != re_password:
         return None, "Passwords do not match."
 
-    # ✅ SAFE DB QUERY (no scan)
     if User.query.filter_by(username=username).first():
         return None, "Username already exists."
 
     if User.query.filter_by(email=email).first():
         return None, "Email already exists."
 
+    profile_pic = None
+
+    file = files.get("propic")
+
+    if file and file.filename:
+        filename = secure_filename(file.filename)
+        filename = f"{uuid.uuid4().hex}_{filename}"
+        file.save(os.path.join(PROFILE_PICS_FOLDER, filename))
+
+        profile_pic = filename
+
     code = generate_code()
-    temp_signup_users[email] = {"form_data": form_data, "code": code}
+
+    temp_signup_users[email] = {
+        "form_data": form_data,
+        "code": code,
+        "profile_pic": profile_pic   # FIX: store file result
+    }
 
     send_verification_email(email, code, subject="Signup Verification Code")
 
@@ -99,7 +118,7 @@ def verify_signup_code(email, code):
             country=form_data.get("country"),
             bio=form_data.get("bio", ""),
             password=hashed_password,
-            profile_pic=form_data.get("profile_pic")
+            profile_pic=data.get("profile_pic")
         )
 
         db.session.add(user)

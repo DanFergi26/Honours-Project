@@ -2,12 +2,11 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Search Results</title>
+    <title>Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
-
 <!-- =========================
      NAVBAR
 ========================= -->
@@ -45,61 +44,39 @@
 <!-- Divider -->
 <div class="divider"></div>
 
-<!-- ================= USERS ================= -->
-<div class="section-title">Users</div>
+<div class="center-container">
 
-<div class="content-container">
-    {% if user_results %}
-    <div class="grid">
+    <div class="form-box">
 
-        {% for u in user_results %}
-		<div class="grid-box user-card">
+        <h1>Login</h1>
 
-			<div class="profile-circle">
-				<img src="{{ url_for('profile_pics', filename=u.profile_pic or 'default_pfp.jpg') }}">
-			</div>
+        <form method="POST" action="{{ url_for('login') }}">
 
-			<div class="username">
-				{{ u.username }}
-			</div>
+            <input type="text" name="username" placeholder="Username" required>
+            <br><br>
 
-		</div>
-		{% endfor %}
+            <input type="password" name="password" placeholder="Password" required>
+            <br><br>
 
-    </div>
-    {% else %}
-        <p>No users found.</p>
-    {% endif %}
-</div>
+            <button type="submit">Login</button>
 
-<!-- ================= FIGURES ================= -->
-<div class="section-title">Figures</div>
+        </form>
 
-<div class="content-container">
-    {% if figure_results %}
-    <div class="grid">
+        {% with messages = get_flashed_messages() %}
+    {% for msg in messages %}
+        <p class="message">{{ msg }}</p>
+    {% endfor %}
+{% endwith %}
 
-        {% for f in figure_results %}
-        <div class="figure-box">
+        <br>
 
-            <div style="text-align:center; padding:10px;">
-
-                <!-- IMAGE -->
-                <img src="{{ url_for('static', filename='figure_images/' ~ f.images[0].image_path) }}"
-				class="figure-img">
-                <br><br>
-
-                <strong>{{ f.name }}</strong>
-
-            </div>
-
-        </div>
-        {% endfor %}
+        <p>
+            Don’t have an account?
+            <a href="{{ url_for('signup') }}">Sign up here</a>
+        </p>
 
     </div>
-    {% else %}
-        <p>No figures found.</p>
-    {% endif %}
+
 </div>
 
 </body>

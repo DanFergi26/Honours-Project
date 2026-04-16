@@ -4,13 +4,13 @@ from services.user_service import get_current_user, register_user, authenticate_
 from services.role_service import create_permission, create_role, assign_permission_to_role, assign_role_to_user
 from services.figure_service import add_figure, add_brand, add_manufacturer, get_all_brands, get_all_manufacturers
 from services.email_service import send_verification_email
+from config import PROFILE_PICS_FOLDER, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import os
 import random
 
-UPLOAD_FOLDER = "static/figure_images"
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -20,7 +20,6 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # ------------------- Database Setup -------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # MySQL Configuration
 DB_USER = "root"              # your MySQL username
@@ -39,7 +38,6 @@ with app.app_context():
     db.create_all()
 
 # ------------------- Static Folders -------------------
-PROFILE_PICS_FOLDER = os.path.join(BASE_DIR, "static", "profile_pics")
 os.makedirs(PROFILE_PICS_FOLDER, exist_ok=True)
 
 @app.route("/profile_pics/<filename>")
@@ -54,15 +52,24 @@ def index_redirect():
 @app.route("/loading")
 def loading():
     return render_template("loading.html")
+
+# ------------------ Nav -------------------
+@app.route("/nav")
+def nav():
+    return render_template("nav.html")
     
 # ------------------- Home -------------------
 @app.route("/home")
 def home():
+    user = None
+    if session.get("logged_in"):
+        user = User.query.filter_by(username=session.get("username")).first()
+
     return render_template(
         "home.html",
         logged_in=session.get("logged_in", False),
         username=session.get("username"),
-        profile_pic=session.get("profile_pic", "default_pfp.png")
+        profile_pic=user.profile_pic if user else None
     )
 
 # ------------------- Signup with 2FA -------------------
@@ -70,7 +77,7 @@ def home():
 def signup():
     if request.method == "POST":
         form_data = request.form
-        user_info, error = register_user(form_data)
+        user_info, error = register_user(request.form, request.files)
         if error:
             flash(error)
             return render_template("signup.html")
@@ -115,15 +122,17 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
+        # USER NOT FOUND
         if not user:
             log_login_attempt(None, username, False)
-            return render_template("home.html", message="Account does not exist.")
+            return render_template("login.html", message="Account does not exist.")
 
-        # CHECK LOCKOUT
+        # ACCOUNT LOCKED
         if user.lockout_until and datetime.utcnow() < user.lockout_until:
             log_login_attempt(user, username, False, timed_out=True)
-            return render_template("home.html", message="Account locked. Try again later.")
+            return render_template("login.html", message="Account locked. Try again later.")
 
+        # WRONG PASSWORD
         if not user.check_password(password):
             user.failed_attempts += 1
 
@@ -131,12 +140,13 @@ def login():
             if user.failed_attempts >= 3:
                 user.lockout_until = datetime.utcnow() + timedelta(minutes=10)
                 db.session.commit()
+
                 log_login_attempt(user, username, False, timed_out=True)
-                return render_template("home.html", message="Too many attempts. Locked for 10 minutes.")
+                return render_template("login.html", message="Too many attempts. Locked for 10 minutes.")
 
             db.session.commit()
             log_login_attempt(user, username, False)
-            return render_template("home.html", message="Password incorrect.")
+            return render_template("login.html", message="Password incorrect.")
 
         # PASSWORD CORRECT
         user.failed_attempts = 0
@@ -145,7 +155,7 @@ def login():
 
         log_login_attempt(user, username, True)
 
-        # Continue with 2FA as before
+        # 2FA CODE
         code = str(random.randint(100000, 999999))
 
         session["login_username"] = user.username
@@ -158,7 +168,8 @@ def login():
         flash("2FA code sent to your email.")
         return redirect(url_for("verify_login"))
 
-    return render_template("home.html")
+    # GET request
+    return render_template("login.html")
 
 @app.route("/verify_login", methods=["GET", "POST"])
 def verify_login():
@@ -179,7 +190,7 @@ def verify_login():
             user = User.query.filter_by(username=username).first()
             session["logged_in"] = True
             session["username"] = username
-            session["profile_pic"] = user.profile_pic or "default_pfp.png"
+            session["profile_pic"] = user.profile_pic or "default_pfp.jpg"
             flash("Login successful!")
             return redirect(url_for("home"))
         else:
@@ -459,21 +470,87 @@ def set_new_password():
 
 @app.route("/account")
 def account():
-    user = get_current_user()
-    if not user:
+    current_user = get_current_user()
+    if not current_user:
         return redirect(url_for("login"))
 
-    user = User.query.filter_by(username=session["username"]).first()
+    # The profile being viewed (for now it's always yourself)
+    profile_user = User.query.filter_by(username=session["username"]).first()
 
-    collections = UserCollection.query.filter_by(user_id=user.id).all()
-    subcollections = SubCollection.query.filter_by(user_id=user.id).all()
+    collections = UserCollection.query.filter_by(user_id=current_user.id).all()
+    subcollections = SubCollection.query.filter_by(user_id=current_user.id).all()
 
     return render_template(
         "account.html",
+        profile_user=profile_user,
         collections=collections,
         subcollections=subcollections
     )
 
+@app.route("/account/<username>")
+def view_account(username):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
+    # redirect if viewing self
+    if current_user.username == username:
+        return redirect(url_for("account"))
+
+    profile_user = User.query.filter_by(username=username).first()
+
+    if not profile_user:
+        return "User not found", 404
+
+    # 🔥 GET FULL FIGURE OBJECTS (NOT just IDs)
+    collection_items = UserCollection.query.filter_by(user_id=profile_user.id).all()
+
+    figures = []
+    for item in collection_items:
+        fig = Figures.query.get(item.figure_id)
+        if fig:
+            figures.append(fig)
+
+    subcollections = SubCollection.query.filter_by(user_id=profile_user.id).all()
+
+    return render_template(
+        "account_view.html",
+        profile_user=profile_user,
+        figures=figures,
+        subcollections=subcollections
+    )
+    
+@app.route("/account/<username>/subcollection/<int:sub_id>")
+def view_public_subcollection(username, sub_id):
+    current_user = get_current_user()
+    if not current_user:
+        return redirect(url_for("login"))
+
+    profile_user = User.query.filter_by(username=username).first()
+    if not profile_user:
+        return "User not found", 404
+
+    sub = SubCollection.query.get(sub_id)
+
+    # ownership check (subcollection must belong to the profile user)
+    if not sub or sub.user_id != profile_user.id:
+        return "Subcollection not found", 404
+
+    # get figures in subcollection
+    items = SubCollectionItem.query.filter_by(subcollection_id=sub_id).all()
+
+    figures = []
+    for item in items:
+        fig = Figures.query.get(item.figure_id)
+        if fig:
+            figures.append(fig)
+
+    return render_template(
+        "subcollection_view.html",
+        profile_user=profile_user,
+        sub=sub,
+        figures=figures
+    )
 # ------------------- Collections ------------------- 
 
 @app.route("/my_collection")

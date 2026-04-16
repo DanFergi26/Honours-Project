@@ -1,22 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Admin Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
 
-<h1>Admin Panel</h1>
+    <!-- Left: Logo -->
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo"></a>
+    </div>
 
-<ul>
-    <li><a href="{{ url_for('rolecreate') }}">Create Role</a></li>
-    <li><a href="{{ url_for('permcreate') }}">Create Permission</a></li>
-    <li><a href="{{ url_for('roleassign') }}">Assign Permission to Role</a></li>
-    <li><a href="{{ url_for('assignuser') }}">Assign Role to User</a></li>
-	 <li><a href="{{ url_for('users') }}">View Users</a></li>
-</ul>
+    <!-- Center: Nav Links -->
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+		<a href="{{ url_for('account') }}">Account</a>
+    </div>
 
-<br>
-<a href="{{ url_for('home') }}">Back to Home</a>
+    <!-- Right: Search + Profile -->
+    <div class="nav-right">
+
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}"><img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}"></a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<!-- Divider -->
+<div class="divider"></div>
+
+
+<div class="account-page">
+
+    <h1 class="account-title">Admin Panel</h1>
+
+    <p class="account-subtitle">
+        System management dashboard
+    </p>
+
+    <hr class="account-divider">
+
+    <div class="account-section">
+
+        <ul class="admin-list">
+
+    <li>
+        <a class="admin-link" href="{{ url_for('rolecreate') }}">
+            Create Role
+        </a>
+    </li>
+
+    <li>
+        <a class="admin-link" href="{{ url_for('permcreate') }}">
+            Create Permission
+        </a>
+    </li>
+
+    <li>
+        <a class="admin-link" href="{{ url_for('roleassign') }}">
+            Assign Permission to Role
+        </a>
+    </li>
+
+    <li>
+        <a class="admin-link" href="{{ url_for('assignuser') }}">
+            Assign Role to User
+        </a>
+    </li>
+
+    <li>
+        <a class="admin-link" href="{{ url_for('users') }}">
+            View Users
+        </a>
+    </li>
+
+		</ul>
+
+    </div>
+
+    <hr class="account-divider">
+
+    <div class="account-links">
+        <a href="{{ url_for('home') }}">Back to Home</a>
+    </div>
+
+</div>
 
 </body>
 </html>

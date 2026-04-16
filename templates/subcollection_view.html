@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Account</title>
+    <title>{{ sub.title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -46,60 +46,46 @@
 
 <div class="account-page">
 
-    <!-- Dynamic Title -->
     <h1 class="account-title">
-        {% if session.get('username') == profile_user.username %}
-            My Account
-        {% else %}
-            {{ profile_user.username }}'s Account
-        {% endif %}
+        {{ sub.title }}
     </h1>
 
     <p class="account-subtitle">
-        Welcome, <strong>{{ profile_user.username }}</strong>
+        From {{ profile_user.username }}'s account
     </p>
 
     <hr class="account-divider">
 
     <div class="account-section">
-        <h2>Collections</h2>
 
-        <ul class="account-list">
-            <li><a href="{{ url_for('my_collection') }}">My Collection</a></li>
-            <li><a href="{{ url_for('add_collection') }}">Add Collection</a></li>
-            <li><a href="{{ url_for('create_subcollection') }}">Create Subcollection</a></li>
-        </ul>
-    </div>
+        {% if figures %}
+            <div class="figure-grid">
 
-    <hr class="account-divider">
+                {% for f in figures %}
+                    <div class="figure-card">
 
-    <div class="account-section">
-        <h2>My Subcollections</h2>
+                        {% if f.images and f.images|length > 0 %}
+                            <img src="{{ url_for('static', filename='figure_images/' + f.images[0].image_path) }}"
+                                 alt="{{ f.name }}">
+                        {% endif %}
 
-        {% if subcollections %}
-            <ul class="account-list">
-                {% for sc in subcollections %}
-                    <li>
-                        <a href="{{ url_for('subcollection', id=sc.id) }}">
-                            {{ sc.title }}
-                        </a>
-                        |
-                        <a href="{{ url_for('edit_subcollection', id=sc.id) }}">Edit</a>
-                    </li>
+                        <p>{{ f.name }}</p>
+
+                    </div>
                 {% endfor %}
-            </ul>
+
+            </div>
         {% else %}
-            <p>No subcollections yet.</p>
+            <p>No figures in this subcollection.</p>
         {% endif %}
+
     </div>
 
     <hr class="account-divider">
 
-    <div class="account-links">
-        <a href="{{ url_for('logout') }}">Logout</a>
-        |
-        <a href="{{ url_for('home') }}">Home</a>
-    </div>
+    <a href="{{ url_for('view_account', username=profile_user.username) }}">
+        Back to Profile
+    </a>
 
 </div>
 
