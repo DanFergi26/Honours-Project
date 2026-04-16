@@ -1,36 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Add Manufacturer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-<h1>Add Manufacturer</h1>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    {% for msg in messages %}
-      <p style="color:red;">{{ msg }}</p>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+    <!-- Left: Logo -->
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
 
-<form method="POST">
+    <!-- Center: Nav Links -->
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
 
-    <label>Manufacturer Name:</label><br>
-    <input type="text" name="name" required>
-    <br><br>
+    <!-- Right: Search + Profile -->
+    <div class="nav-right">
 
-    <label>Description:</label><br>
-    <textarea name="desc" required></textarea>
-    <br><br>
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
 
-    <button type="submit">Add Manufacturer</button>
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
+        </div>
 
-</form>
+    </div>
+</div>
 
-<br>
-<a href="{{ url_for('home') }}">Back Home</a>
+<!-- Divider -->
+<div class="divider"></div>
 
+<!-- =========================
+     PAGE CONTENT
+========================= -->
+<div class="center-container">
+
+    <div class="form-box">
+
+        <h1>Add Manufacturer</h1>
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <p class="message">{{ msg }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+
+            <input type="text" name="name" placeholder="Manufacturer Name" required>
+            <br><br>
+
+            <textarea name="desc" placeholder="Manufacturer Description" required></textarea>
+            <br><br>
+
+            <button type="submit">Add Manufacturer</button>
+
+        </form>
+
+        <br>
+
+        <p>
+            <a href="{{ url_for('home') }}">Back Home</a>
+        </p>
+
+    </div>
+
+</div>
+<audio id="bg-music" loop>
+    <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("bg-music");
+
+// restore saved time
+const savedTime = localStorage.getItem("bg-music-time");
+if (savedTime) {
+    music.currentTime = parseFloat(savedTime);
+}
+
+music.volume = 0.5;
+
+// ALWAYS attempt play immediately
+function tryPlay() {
+    const playPromise = music.play();
+
+    if (playPromise !== undefined) {
+        playPromise
+            .then(() => {
+                localStorage.setItem("bg-music-playing", "true");
+            })
+            .catch(() => {
+                // autoplay blocked → unlock on click
+                document.addEventListener("click", () => {
+                    music.play();
+                    localStorage.setItem("bg-music-playing", "true");
+                }, { once: true });
+            });
+    }
+}
+
+// ALWAYS attempt on page load
+window.addEventListener("load", tryPlay);
+
+// save progress continuously
+setInterval(() => {
+    if (!music.paused) {
+        localStorage.setItem("bg-music-time", music.currentTime);
+    }
+}, 1000);
+
+// save on exit
+window.addEventListener("beforeunload", () => {
+    localStorage.setItem("bg-music-time", music.currentTime);
+});
+</script>
 </body>
 </html>

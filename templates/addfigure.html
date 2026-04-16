@@ -3,108 +3,190 @@
 <head>
     <meta charset="UTF-8" />
     <title>Add Figure</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
 
-<header>
-    {% if session.get('logged_in') %}
-        <div>
-            <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.png')) }}"
-                 width="50">
-            <span>{{ session.get('username') }}</span>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
+
+    <!-- Left: Logo -->
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
+
+    <!-- Center: Nav Links -->
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <!-- Right: Search + Profile -->
+    <div class="nav-right">
+
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
         </div>
-    {% endif %}
-</header>
 
-<hr>
+    </div>
+</div>
 
-<!-- FLASH MESSAGES -->
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul style="color: red;">
-      {% for msg in messages %}
-        <li>{{ msg }}</li>
-      {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+<!-- Divider -->
+<div class="divider"></div>
 
-<h2>Add Figure</h2>
+<!-- =========================
+     PAGE CONTENT
+========================= -->
+<div class="center-container">
 
-<form method="POST" action="/addfigure" enctype="multipart/form-data">
+    <div class="form-box">
 
-    <label>Name:</label><br>
-    <input type="text" name="figname" required>
-    <br><br>
+        <h1>Add Figure</h1>
 
-    <label>Description:</label><br>
-    <input type="text" name="figdesc" required>
-    <br><br>
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <p class="message">{{ msg }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
-    <label>Brand:</label><br>
-    <select name="brandID" required>
-        <option value="">--Choose Brand--</option>
-        {% for b in brand %}
-            <option value="{{ b.id }}">{{ b.name }}</option>
-        {% endfor %}
-    </select>
-    <br><br>
+        <form method="POST" action="/addfigure" enctype="multipart/form-data">
 
-    <label>Manufacturer:</label><br>
-    <select name="manufacturerID" required>
-        <option value="">--Choose Manufacturer--</option>
-        {% for m in manufacturer %}
-            <option value="{{ m.id }}">{{ m.name }}</option>
-        {% endfor %}
-    </select>
-    <br><br>
+            <input type="text" name="figname" placeholder="Figure Name" required>
+            <br><br>
 
-    <label>Genre:</label><br>
-    <input type="text" name="genre" required>
-    <br><br>
+            <input type="text" name="figdesc" placeholder="Description" required>
+            <br><br>
 
-    <label>Series:</label><br>
-    <input type="text" name="series" required>
-    <br><br>
+            <label>Brand:</label><br>
+            <select name="brandID" required>
+                <option value="">--Choose Brand--</option>
+                {% for b in brand %}
+                    <option value="{{ b.id }}">{{ b.name }}</option>
+                {% endfor %}
+            </select>
 
-    <label>Release Date:</label><br>
-    <input type="date" name="releaseDate" required>
-    <br><br>
+            <br><br>
 
-    <label>Retail Price:</label><br>
-    <input type="number" step="0.01" name="retailPrice" required>
-    <br><br>
+            <label>Manufacturer:</label><br>
+            <select name="manufacturerID" required>
+                <option value="">--Choose Manufacturer--</option>
+                {% for m in manufacturer %}
+                    <option value="{{ m.id }}">{{ m.name }}</option>
+                {% endfor %}
+            </select>
 
-    <label>Average Price:</label><br>
-    <input type="number" step="0.01" name="avgPrice" required>
-    <br><br>
+            <br><br>
 
-    <label>Size (cm):</label><br>
-    <input type="number" step="0.1" name="itemSize" required>
-    <br><br>
+            <input type="text" name="genre" placeholder="Genre" required>
+            <br><br>
 
-    <label>Weight (g) (optional):</label><br>
-    <input type="number" step="0.1" name="itemWeight">
-    <br><br>
+            <input type="text" name="series" placeholder="Series" required>
+            <br><br>
 
-    <!-- IMAGE UPLOAD -->
-    <label>Upload Images (1–5 required):</label><br>
-    <input type="file" name="images" accept="image/*" multiple required>
-    <p>Minimum 1 image, maximum 5 images allowed.</p>
+            <label>Release Date:</label><br>
+            <input type="date" name="releaseDate" required>
+            <br><br>
 
-    <br><br>
+            <input type="number" step="0.01" name="retailPrice" placeholder="Retail Price" required>
+            <br><br>
 
-    <label>Links:</label><br>
-    <input type="text" name="links" required>
-    <br><br>
+            <input type="number" step="0.01" name="avgPrice" placeholder="Average Price" required>
+            <br><br>
 
-    <button type="submit">Add Figure</button>
+            <input type="number" step="0.1" name="itemSize" placeholder="Size (cm)" required>
+            <br><br>
 
-</form>
+            <input type="number" step="0.1" name="itemWeight" placeholder="Weight (g) (optional)">
+            <br><br>
 
-<br><br>
-<a href="/">Go back to Home</a>
+            <label>Upload Images (1–5 required):</label><br>
+            <input type="file" name="images" accept="image/*" multiple required>
+            <p class="message">Minimum 1 image, maximum 5 images allowed.</p>
 
+            <br><br>
+
+            <input type="text" name="links" placeholder="Links" required>
+            <br><br>
+
+            <button type="submit">Add Figure</button>
+
+        </form>
+
+        <br>
+
+        <p>
+            <a href="{{ url_for('home') }}">Back Home</a>
+        </p>
+
+    </div>
+
+</div>
+<audio id="bg-music" loop>
+    <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("bg-music");
+
+// restore saved time
+const savedTime = localStorage.getItem("bg-music-time");
+if (savedTime) {
+    music.currentTime = parseFloat(savedTime);
+}
+
+music.volume = 0.5;
+
+// ALWAYS attempt play immediately
+function tryPlay() {
+    const playPromise = music.play();
+
+    if (playPromise !== undefined) {
+        playPromise
+            .then(() => {
+                localStorage.setItem("bg-music-playing", "true");
+            })
+            .catch(() => {
+                // autoplay blocked → unlock on click
+                document.addEventListener("click", () => {
+                    music.play();
+                    localStorage.setItem("bg-music-playing", "true");
+                }, { once: true });
+            });
+    }
+}
+
+// ALWAYS attempt on page load
+window.addEventListener("load", tryPlay);
+
+// save progress continuously
+setInterval(() => {
+    if (!music.paused) {
+        localStorage.setItem("bg-music-time", music.currentTime);
+    }
+}, 1000);
+
+// save on exit
+window.addEventListener("beforeunload", () => {
+    localStorage.setItem("bg-music-time", music.currentTime);
+});
+</script>
 </body>
 </html>

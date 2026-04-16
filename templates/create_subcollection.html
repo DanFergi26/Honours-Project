@@ -134,6 +134,54 @@ function updateHiddenInputs() {
     });
 }
 </script>
+<audio id="bg-music" loop>
+    <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
+</audio>
 
+<script>
+const music = document.getElementById("bg-music");
+
+// restore saved time
+const savedTime = localStorage.getItem("bg-music-time");
+if (savedTime) {
+    music.currentTime = parseFloat(savedTime);
+}
+
+music.volume = 0.5;
+
+// ALWAYS attempt play immediately
+function tryPlay() {
+    const playPromise = music.play();
+
+    if (playPromise !== undefined) {
+        playPromise
+            .then(() => {
+                localStorage.setItem("bg-music-playing", "true");
+            })
+            .catch(() => {
+                // autoplay blocked → unlock on click
+                document.addEventListener("click", () => {
+                    music.play();
+                    localStorage.setItem("bg-music-playing", "true");
+                }, { once: true });
+            });
+    }
+}
+
+// ALWAYS attempt on page load
+window.addEventListener("load", tryPlay);
+
+// save progress continuously
+setInterval(() => {
+    if (!music.paused) {
+        localStorage.setItem("bg-music-time", music.currentTime);
+    }
+}, 1000);
+
+// save on exit
+window.addEventListener("beforeunload", () => {
+    localStorage.setItem("bg-music-time", music.currentTime);
+});
+</script>
 </body>
 </html>

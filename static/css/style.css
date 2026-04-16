@@ -228,7 +228,7 @@ a {
 
 .section-title {
     background-color: #00ffff;
-	text-align: center;
+    text-align: center;
     color: black;
     padding: 12px;
     margin: 40px 40px 20px 40px;
@@ -290,6 +290,7 @@ a {
     color: red;
     margin-top: 10px;
 }
+
 .file-input-row {
     display: flex;
     align-items: center;
@@ -302,26 +303,28 @@ a {
 
 .figure-box {
     background-color: black;
-    height: 380px;           
-    overflow: hidden;        
+    height: 380px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
 }
+
 .figure-box:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px #00ffff;
 }
+
 .figure-img {
     width: 75%;
-    height: 300px;           
-    object-fit: cover;    
+    height: 300px;
+    object-fit: cover;
     border-bottom: 2px solid #00ffff;
 }
 
 .user-card {
     background-color: black;
-    height: 140px;             
+    height: 140px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -347,10 +350,10 @@ a {
     color: #00ffff;
 }
 
-
 /* =========================
 	TRON
 ========================= */
+
 .fab-container {
     position: fixed;
     bottom: 20px;
@@ -358,7 +361,6 @@ a {
     z-index: 9999;
 }
 
-/* Circular button */
 .fab-button {
     width: 60px;
     height: 60px;
@@ -377,7 +379,6 @@ a {
     transform: scale(1.1);
 }
 
-/* Image inside circle */
 .fab-button img {
     width: 80%;
     height: 80%;
@@ -385,7 +386,6 @@ a {
     border-radius: 50%;
 }
 
-/* Popup menu */
 .fab-menu {
     position: absolute;
     bottom: 70px;
@@ -398,7 +398,6 @@ a {
     min-width: 150px;
 }
 
-/* Menu links */
 .fab-menu a {
     padding: 10px;
     color: #00ffff;
@@ -419,25 +418,22 @@ a {
 .account-page {
     padding: 60px;
     min-height: 100vh;
-	margin-top: 0;
-    padding-top: 10px; 
+    margin-top: 0;
+    padding-top: 10px;
 }
 
-/* Title */
 .account-title {
     font-size: 40px;
     margin-bottom: 10px;
     text-shadow: 0 0 10px #00ffff;
-	margin-top: 0;
+    margin-top: 0;
 }
 
-/* Subtitle */
 .account-subtitle {
     font-size: 18px;
     margin-bottom: 10px;
 }
 
-/* Divider */
 .account-divider {
     border: none;
     height: 2px;
@@ -445,12 +441,10 @@ a {
     margin: 30px 0;
 }
 
-/* Sections */
 .account-section h2 {
     margin-bottom: 15px;
 }
 
-/* Links area */
 .account-links a {
     color: #00ffff;
     margin-right: 15px;
@@ -472,15 +466,12 @@ a {
     display: flex;
     justify-content: center;
     align-items: center;
-
     padding: 20px;
     border: 2px solid #00ffff;
     background-color: transparent;
     color: #00ffff;
-
     font-size: 18px;
     text-align: center;
-
     transition: 0.25s;
 }
 
@@ -564,6 +555,10 @@ a {
     padding: 10px;
     text-align: center;
     transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
 }
 
 .figure-card:hover {
@@ -588,7 +583,6 @@ a {
     max-width: 600px;
 }
 
-
 .admin-list li {
     margin: 12px 0;
 }
@@ -610,6 +604,7 @@ a {
     transform: scale(1.02);
     box-shadow: 0 0 15px #00ffff;
 }
+
 /* =========================
    FIGURE VIEW PAGE
 ========================= */
@@ -686,12 +681,287 @@ a {
     padding: 20px;
 }
 
+/* =========================
+   PAGE WRAPPER FIX
+========================= */
+
 .page-container {
-    margin: 20px 60px;   
+    margin: 20px 60px;
+}
+
+/* =========================
+   ADD BUTTON + STATES (FIXED)
+========================= */
+
+.small-button {
+    margin-top: 5px;
+    padding: 6px 12px;
+    border: 1px solid #00ffff;
+    background: transparent;
+    color: #00ffff;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.small-button:hover {
+    background: #00ffff;
+    color: black;
+    box-shadow: 0 0 10px #00ffff;
 }
 
 .already-added {
     color: #00ffff;
     margin-top: 10px;
     font-weight: bold;
+}
+
+/* =========================
+   ADD BRAND PAGE FIX (NEW)
+========================= */
+
+.brand-form-container {
+    margin: 40px 60px;
+    padding: 20px;
+    border: 2px solid #00ffff;
+    background: rgba(0,0,0,0.7);
+    box-shadow: 0 0 15px #00ffff;
+    max-width: 600px;
+}
+
+.brand-form-container input,
+.brand-form-container textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 12px;
+    border: 1px solid #00ffff;
+    background: black;
+    color: #00ffff;
+}
+
+.brand-form-container button {
+    padding: 10px 20px;
+    border: 1px solid #00ffff;
+    background: transparent;
+    color: #00ffff;
+    cursor: pointer;
+}
+
+.brand-form-container button:hover {
+    background: #00ffff;
+    color: black;
+}
+
+.center-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+    gap: 40px;
+    padding-top: 120px;
+    box-sizing: border-box;
+}
+
+/* =========================
+   LOADING SCREEN
+========================= */
+
+.loading-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: black;
+    color: #00ffff;
+    font-family: 'Press Start 2P', monospace;
+}
+
+/* Title */
+#loading-text {
+    margin-bottom: 30px;
+    font-size: 22px;
+    text-shadow: 0 0 10px #00ffff;
+}
+
+/* blinking text */
+.blink {
+    animation: blinkAnim 0.4s step-start infinite;
+}
+
+@keyframes blinkAnim {
+    50% { opacity: 0.2; }
+}
+
+/* progress container */
+.progress-container {
+    display: flex;
+    width: 320px;
+    height: 40px;
+    background-color: #111;
+    border: 2px solid #00ffff;
+    box-shadow: 0 0 15px #00ffff;
+}
+
+/* bar wrapper */
+.progress-bar {
+    display: flex;
+    width: 100%;
+}
+
+/* blocks */
+.block {
+    flex: 1;
+    margin: 1px;
+    background-color: #00ffff;
+    opacity: 0.2;
+    box-shadow: 0 0 6px #00ffff;
+    transition: opacity 0.2s;
+}
+
+/* active block */
+.block.active {
+    opacity: 1;
+    animation: flicker 0.3s infinite;
+}
+
+/* flicker effect */
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.fade-out {
+    animation: fadeOutAnim 0.9s forwards;
+}
+
+@keyframes fadeOutAnim {
+    0% {
+        opacity: 1;
+        filter: brightness(1);
+    }
+    100% {
+        opacity: 0;
+        filter: brightness(0);
+    }
+}
+
+.nav-fade-in {
+    opacity: 0;
+    animation: navFadeIn 0.9s ease forwards;
+}
+
+@keyframes navFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(1.02);
+        filter: brightness(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+        filter: brightness(1);
+    }
+}
+
+.loading-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 30px;
+}
+
+.blackout {
+    background: black !important;
+}
+
+.audio-unlock {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* KEEP YOUR GRID BACKGROUND FEEL */
+    background-color: black;
+}
+
+/* panel */
+.audio-panel {
+    border: 2px solid #00ffff;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 20px #00ffff;
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* title */
+.audio-title {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #00ffff;
+    letter-spacing: 2px;
+}
+
+/* button */
+.audio-button {
+    border: 2px solid #00ffff;
+    padding: 15px 30px;
+    display: inline-block;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 14px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.audio-button:hover {
+    background-color: #00ffff;
+    color: black;
+    transform: scale(1.05);
+}
+
+/* subtitle */
+.audio-sub {
+    margin-top: 15px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.loading-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    text-align: center;
+    gap: 30px;
+}
+
+.start-screen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.progress-container {
+    margin: 0 auto;
+}
+
+#loading-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }

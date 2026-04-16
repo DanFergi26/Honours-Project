@@ -2,103 +2,114 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Initiating System...</title>
-    <style>
-        /* Retro arcade background */
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            font-family: 'Press Start 2P', monospace;
-            background-color: #000;
-            color: #0ff; /* neon cyan */
-        }
+    <title>Loading...</title>
 
-        h1 {
-            margin-bottom: 30px;
-            font-size: 2rem;
-            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
-        }
-
-        /* Container for retro blocks */
-        .progress-container {
-            display: flex;
-            width: 320px;
-            height: 40px;
-            background-color: #111;
-            border: 3px solid #0ff;
-            box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-        }
-
-        /* Each block in the bar */
-        .progress-bar {
-            display: flex;
-            flex-direction: row;
-            flex-grow: 1;
-        }
-
-        .block {
-            flex: 1;
-            margin: 1px;
-            background-color: #0ff;
-            opacity: 0.2;
-            transition: opacity 0.1s;
-            box-shadow: 0 0 5px #0ff, 0 0 10px #0ff;
-        }
-
-        .block.active {
-            opacity: 1;
-        }
-
-        /* Optional neon flicker animation */
-        @keyframes flicker {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-        .block.active {
-            animation: flicker 0.3s infinite;
-        }
-    </style>
-    <!-- Import 80s arcade font -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
-<body>
-    <h1>Initiating System...</h1>
-    <div class="progress-container">
-        <div class="progress-bar" id="progress-bar">
-            <!-- Blocks will be inserted by JS -->
-        </div>
+
+<body class="loading-body">
+
+    <!-- =========================
+         START SCREEN (IMPORTANT)
+    ========================== -->
+    <div id="start-screen" class="start-screen">
+        <h1 class="start-title">CLICK TO INITIATE SYSTEM</h1>
     </div>
 
-    <script>
-        const totalBlocks = 20; // number of blocks in the bar
-        const progressBar = document.getElementById('progress-bar');
+    <!-- =========================
+         LOADING UI
+    ========================== -->
+    <div id="loading-ui" style="display:none;">
 
-        // Create the blocks
-        for (let i = 0; i < totalBlocks; i++) {
-            const block = document.createElement('div');
-            block.classList.add('block');
-            progressBar.appendChild(block);
-        }
+        <h1 id="loading-text">Initiating System...</h1>
 
-        const blocks = document.querySelectorAll('.block');
-        let index = 0;
-        const duration = 10000; // 10 seconds
-        const intervalTime = duration / totalBlocks;
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
 
-        const interval = setInterval(() => {
+    </div>
+
+    <!-- AUDIO -->
+    <audio id="beep" src="{{ url_for('static', filename='audio/loading.mp3') }}" preload="auto"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    const totalBlocks = 20;
+    const duration = 10000;
+    const intervalTime = duration / totalBlocks;
+    const BEEP_GAP = 1000;
+
+    const startScreen = document.getElementById("start-screen");
+    const loadingUI = document.getElementById("loading-ui");
+    const progressBar = document.getElementById("progress-bar");
+    const text = document.getElementById("loading-text");
+    const beepAudio = document.getElementById("beep");
+
+    let index = 0;
+    let started = false;
+
+    // build blocks immediately
+    for (let i = 0; i < totalBlocks; i++) {
+        const block = document.createElement('div');
+        block.classList.add('block');
+        progressBar.appendChild(block);
+    }
+
+    const blocks = document.querySelectorAll('.block');
+
+    // =========================
+    // START FUNCTION
+    // =========================
+    function startSystem() {
+
+        if (started) return;
+        started = true;
+
+        // swap screens
+        startScreen.style.display = "none";
+        loadingUI.style.display = "block";
+
+        // -------------------------
+        // BEEP LOOP 
+        // -------------------------
+        const beepTimer = setInterval(() => {
+            beepAudio.currentTime = 0;
+            beepAudio.play().catch(() => {});
+        }, BEEP_GAP);
+
+        // -------------------------
+        // PROGRESS LOOP
+        // -------------------------
+        const progressTimer = setInterval(() => {
+
             if (index < blocks.length) {
                 blocks[index].classList.add('active');
                 index++;
+                text.classList.toggle('blink');
+
             } else {
-                clearInterval(interval);
-                // Redirect to homepage
-                window.location.href = "{{ url_for('nav') }}";
+                clearInterval(progressTimer);
+                clearInterval(beepTimer);
+
+                document.body.classList.add("fade-out");
+
+                setTimeout(() => {
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('nav') }}";
+                    }, 2000);
+                }, 900);
             }
+
         }, intervalTime);
-    </script>
+    }
+
+    // ONLY START WHEN USER CLICKS START SCREEN
+    startScreen.addEventListener("click", startSystem, { once: true });
+
+});
+</script>
+
 </body>
 </html>

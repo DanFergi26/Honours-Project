@@ -13,43 +13,40 @@
 ========================= -->
 <div class="navbar">
 
-    <!-- Left: Logo -->
     <div class="nav-left">
-        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo"></a>
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
     </div>
 
-    <!-- Center: Nav Links -->
     <div class="nav-links">
         <a href="{{ url_for('home') }}">Home</a> |
         <a href="#">Catalog</a> |
         <a href="#">Contact</a> |
-		<a href="{{ url_for('account') }}">Account</a>
+        <a href="{{ url_for('account') }}">Account</a>
     </div>
 
-    <!-- Right: Search + Profile -->
     <div class="nav-right">
-
         <form method="GET" action="{{ url_for('search') }}">
             <input type="text" name="q" placeholder="Search..." class="search-bar">
         </form>
 
         <div class="profile-circle">
             {% if session.get('logged_in') %}
-                <a href="{{ url_for('account') }}"><img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}"></a>
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
             {% endif %}
         </div>
-
     </div>
 </div>
 
-<!-- Divider -->
 <div class="divider"></div>
 
 <!-- =========================
-     IMAGE SLIDER
+     SLIDER
 ========================= -->
 <div class="slider-container">
-
     <div class="slider">
         <img src="{{ url_for('static', filename='slider_images/img1.jpg') }}" class="slide active">
         <img src="{{ url_for('static', filename='slider_images/img2.jpg') }}" class="slide">
@@ -66,16 +63,10 @@
         <span class="dot" onclick="setSlide(2)"></span>
         <span class="dot" onclick="setSlide(3)"></span>
     </div>
-
 </div>
 
-<!-- =========================
-     CONTENT
-========================= -->
-
-<!-- Figure News -->
+<!-- CONTENT -->
 <div class="section-title">Figure News</div>
-
 <div class="content-container">
     <div class="grid">
         {% for i in range(10) %}
@@ -84,12 +75,10 @@
     </div>
 </div>
 
-<!-- Upcoming Figures -->
 <div class="section-title">Upcoming Figures</div>
-
 <div class="content-container">
     <div class="grid">
-        {% for i in range(10) %}
+        {% for i in range(5) %}
             <div class="grid-box"></div>
         {% endfor %}
     </div>
@@ -97,27 +86,22 @@
 
 <div class="divider"></div>
 
-<!-- Floating Action Button -->
+<!-- FAB -->
 <div class="fab-container">
-
-    <!-- Circle Button -->
     <div class="fab-button" onclick="toggleFabMenu()">
-        <img src="{{ url_for('static', filename='site_images/tron.png') }}" alt="Menu">
+        <img src="{{ url_for('static', filename='site_images/tron.png') }}">
     </div>
 
-    <!-- Popup Menu -->
     <div class="fab-menu" id="fabMenu">
-
         <a href="#">Help</a>
         <a href="#">Contact Us</a>
 
         {% if session.get('logged_in') %}
             <a href="{{ url_for('admin') }}">Admin Page</a>
         {% endif %}
-
     </div>
-
 </div>
+
 <!-- =========================
      SLIDER SCRIPT
 ========================= -->
@@ -146,15 +130,67 @@ function prevSlide() {
 
 function setSlide(index) {
     current = index;
-    showSlide(current);
+    showSlide(index);
 }
-</script>
 
-<script>
 function toggleFabMenu() {
     const menu = document.getElementById("fabMenu");
     menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
 }
 </script>
+
+<!-- =========================
+     🎵 PERSISTENT BACKGROUND MUSIC
+========================= -->
+<audio id="bg-music" loop>
+    <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
+</audio>
+
+<script>
+const music = document.getElementById("bg-music");
+
+// restore saved time
+const savedTime = localStorage.getItem("bg-music-time");
+if (savedTime) {
+    music.currentTime = parseFloat(savedTime);
+}
+
+music.volume = 0.5;
+
+// ALWAYS attempt play immediately
+function tryPlay() {
+    const playPromise = music.play();
+
+    if (playPromise !== undefined) {
+        playPromise
+            .then(() => {
+                localStorage.setItem("bg-music-playing", "true");
+            })
+            .catch(() => {
+                // autoplay blocked → unlock on click
+                document.addEventListener("click", () => {
+                    music.play();
+                    localStorage.setItem("bg-music-playing", "true");
+                }, { once: true });
+            });
+    }
+}
+
+// ALWAYS attempt on page load
+window.addEventListener("load", tryPlay);
+
+// save progress continuously
+setInterval(() => {
+    if (!music.paused) {
+        localStorage.setItem("bg-music-time", music.currentTime);
+    }
+}, 1000);
+
+// save on exit
+window.addEventListener("beforeunload", () => {
+    localStorage.setItem("bg-music-time", music.currentTime);
+});
+</script>
+
 </body>
 </html>
