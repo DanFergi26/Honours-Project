@@ -48,8 +48,8 @@
 ========================= -->
 <div class="slider-container">
     <div class="slider">
-        <img src="{{ url_for('static', filename='slider_images/img1.jpg') }}" class="slide active">
-        <img src="{{ url_for('static', filename='slider_images/img2.jpg') }}" class="slide">
+        <img src="{{ url_for('static', filename='site_images/opbanner.jpg') }}" class="slide active">
+        <img src="{{ url_for('static', filename='site_images/tronbanner.jpg') }}" class="slide">
         <img src="{{ url_for('static', filename='slider_images/img3.jpg') }}" class="slide">
         <img src="{{ url_for('static', filename='slider_images/img4.jpg') }}" class="slide">
     </div>
@@ -86,7 +86,6 @@
 
 <div class="divider"></div>
 
-<!-- FAB -->
 <div class="fab-container">
     <div class="fab-button" onclick="toggleFabMenu()">
         <img src="{{ url_for('static', filename='site_images/tron.png') }}">
@@ -139,9 +138,6 @@ function toggleFabMenu() {
 }
 </script>
 
-<!-- =========================
-     🎵 PERSISTENT BACKGROUND MUSIC
-========================= -->
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>

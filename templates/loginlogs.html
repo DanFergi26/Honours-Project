@@ -2,31 +2,73 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Search Results</title>
+    <title>Login Logs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
-<h2>Login Attempt Logs</h2>
 
-<table border="1">
-<tr>
-    <th>Username</th>
-    <th>IP</th>
-    <th>Success</th>
-    <th>Timed Out</th>
-    <th>Time</th>
-</tr>
+<!-- NAVBAR -->
+<div class="navbar">
 
-{% for log in logs %}
-<tr class="{% if log.timed_out %}timeout{% endif %}">
-    <td>{{ log.username_attempted }}</td>
-    <td>{{ log.ip_address }}</td>
-    <td>{{ "Yes" if log.success else "No" }}</td>
-    <td>{{ "Yes" if log.timed_out else "No" }}</td>
-    <td>{{ log.attempt_time }}</td>
-</tr>
-{% endfor %}
-</table>
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <div class="nav-right">
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CONTENT -->
+<div class="section-title">Login Attempt Logs</div>
+
+<div class="content-container">
+    <div class="table-wrapper">
+
+        <table class="logs-table">
+            <tr>
+                <th>Username</th>
+                <th>IP</th>
+                <th>Success</th>
+                <th>Timed Out</th>
+                <th>Time</th>
+            </tr>
+
+            {% for log in logs %}
+            <tr class="{% if log.timed_out %}timeout{% endif %}">
+                <td>{{ log.username_attempted }}</td>
+                <td>{{ log.ip_address }}</td>
+                <td>{{ "Yes" if log.success else "No" }}</td>
+                <td>{{ "Yes" if log.timed_out else "No" }}</td>
+                <td>{{ log.attempt_time }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+</div>
 
 <style>
 .timeout {
@@ -35,9 +77,23 @@
 }
 </style>
 
-<!-- =========================
-     🎵 PERSISTENT BACKGROUND MUSIC
-========================= -->
+<!-- FAB -->
+<div class="fab-container">
+    <div class="fab-button" onclick="toggleFabMenu()">
+        <img src="{{ url_for('static', filename='site_images/tron.png') }}">
+    </div>
+
+    <div class="fab-menu" id="fabMenu">
+        <a href="#">Help</a>
+        <a href="#">Contact Us</a>
+
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('admin') }}">Admin Page</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- MUSIC -->
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>
@@ -45,47 +101,39 @@
 <script>
 const music = document.getElementById("bg-music");
 
-// restore saved time
 const savedTime = localStorage.getItem("bg-music-time");
-if (savedTime) {
-    music.currentTime = parseFloat(savedTime);
-}
+if (savedTime) music.currentTime = parseFloat(savedTime);
 
 music.volume = 0.5;
 
-// ALWAYS attempt play immediately
 function tryPlay() {
-    const playPromise = music.play();
-
-    if (playPromise !== undefined) {
-        playPromise
-            .then(() => {
-                localStorage.setItem("bg-music-playing", "true");
-            })
-            .catch(() => {
-                // autoplay blocked → unlock on click
-                document.addEventListener("click", () => {
-                    music.play();
-                    localStorage.setItem("bg-music-playing", "true");
-                }, { once: true });
-            });
+    const p = music.play();
+    if (p !== undefined) {
+        p.catch(() => {
+            document.addEventListener("click", () => music.play(), { once: true });
+        });
     }
 }
 
-// ALWAYS attempt on page load
 window.addEventListener("load", tryPlay);
 
-// save progress continuously
 setInterval(() => {
     if (!music.paused) {
         localStorage.setItem("bg-music-time", music.currentTime);
     }
 }, 1000);
 
-// save on exit
 window.addEventListener("beforeunload", () => {
     localStorage.setItem("bg-music-time", music.currentTime);
 });
 </script>
+
+<script>
+function toggleFabMenu() {
+    const menu = document.getElementById("fabMenu");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+</script>
+
 </body>
 </html>

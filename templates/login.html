@@ -74,10 +74,35 @@
             Don’t have an account?
             <a href="{{ url_for('signup') }}">Sign up here</a>
         </p>
-
+		<p>
+			Forgotten your password?
+			<a href="{{ url_for('change_password') }}">Change here</a>
     </div>
 
 </div>
+
+<div class="fab-container">
+    <div class="fab-button" onclick="toggleFabMenu()">
+        <img src="{{ url_for('static', filename='site_images/tron.png') }}">
+    </div>
+
+    <div class="fab-menu" id="fabMenu">
+        <a href="#">Help</a>
+        <a href="#">Contact Us</a>
+
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('admin') }}">Admin Page</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleFabMenu() {
+    const menu = document.getElementById("fabMenu");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+</script>
+
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>

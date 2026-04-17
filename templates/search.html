@@ -53,17 +53,19 @@
     <div class="grid">
 
         {% for u in user_results %}
-		<div class="grid-box user-card">
+		<a href="{{ url_for('view_account', username=u.username) }}" class="user-link">
+			<div class="grid-box user-card">
 
-			<div class="profile-circle">
-				<img src="{{ url_for('profile_pics', filename=u.profile_pic or 'default_pfp.jpg') }}">
+				<div class="profile-circle">
+					<img src="{{ url_for('profile_pics', filename=u.profile_pic or 'default_pfp.jpg') }}">
+				</div>
+
+				<div class="username">
+					{{ u.username }}
+				</div>
+
 			</div>
-
-			<div class="username">
-				{{ u.username }}
-			</div>
-
-		</div>
+		</a>
 		{% endfor %}
 
     </div>
@@ -80,27 +82,52 @@
     <div class="grid">
 
         {% for f in figure_results %}
-        <div class="figure-box">
+		<a href="{{ url_for('figure_view', figure_id=f.id) }}" class="figure-link">
+			<div class="figure-box">
 
-            <div style="text-align:center; padding:10px;">
+				<div style="text-align:center; padding:10px;">
 
-                <!-- IMAGE -->
-                <img src="{{ url_for('static', filename='figure_images/' ~ f.images[0].image_path) }}"
-				class="figure-img">
-                <br><br>
+					<img src="{{ url_for('static', filename='figure_images/' ~ f.images[0].image_path) }}"
+						 class="figure-img">
 
-                <strong>{{ f.name }}</strong>
+					<br><br>
 
-            </div>
+					<strong>{{ f.name }}</strong>
 
-        </div>
-        {% endfor %}
+				</div>
+
+			</div>
+		</a>
+		{% endfor %}
 
     </div>
     {% else %}
         <p>No figures found.</p>
     {% endif %}
 </div>
+
+<div class="fab-container">
+    <div class="fab-button" onclick="toggleFabMenu()">
+        <img src="{{ url_for('static', filename='site_images/tron.png') }}">
+    </div>
+
+    <div class="fab-menu" id="fabMenu">
+        <a href="#">Help</a>
+        <a href="#">Contact Us</a>
+
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('admin') }}">Admin Page</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleFabMenu() {
+    const menu = document.getElementById("fabMenu");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+</script>
+
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>

@@ -3,80 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <title>Signup Verification</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-    <h2>Verify Your Email</h2>
-    <p>We've sent a verification code to your email. Please enter it below to complete signup.</p>
-
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul style="color:red;">
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
-
-    <form method="post">
-        <label for="code">Verification Code:</label>
-        <input type="text" id="code" name="code" required>
-        <button type="submit">Verify</button>
-    </form>
-
-    <p><a href="{{ url_for('signup') }}">Back to Signup</a></p>
-	
-	<!-- =========================
-     🎵 PERSISTENT BACKGROUND MUSIC
+<!-- =========================
+     NAVBAR
 ========================= -->
+<div class="navbar">
+
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <div class="nav-right">
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="center-container">
+
+    <div class="form-box">
+
+        <h2>Verify Your Email</h2>
+        <p>Enter the verification code sent to your email.</p>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul style="color:red;">
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <input type="text" id="code" name="code" placeholder="Verification Code" required>
+            <br><br>
+            <button type="submit" class="small-button">Verify</button>
+        </form>
+
+        <br>
+        <a href="{{ url_for('signup') }}">Back to Signup</a>
+
+    </div>
+
+</div>
+
+
+<div class="fab-container">
+    <div class="fab-button" onclick="toggleFabMenu()">
+        <img src="{{ url_for('static', filename='site_images/tron.png') }}">
+    </div>
+
+    <div class="fab-menu" id="fabMenu">
+        <a href="#">Help</a>
+        <a href="#">Contact Us</a>
+
+        {% if session.get('logged_in') %}
+            <a href="{{ url_for('admin') }}">Admin Page</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleFabMenu() {
+    const menu = document.getElementById("fabMenu");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+</script>
+
+
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>
 
-	<script>
+<script>
 const music = document.getElementById("bg-music");
 
-// restore saved time
 const savedTime = localStorage.getItem("bg-music-time");
-if (savedTime) {
-    music.currentTime = parseFloat(savedTime);
-}
+if (savedTime) music.currentTime = parseFloat(savedTime);
 
 music.volume = 0.5;
 
-// ALWAYS attempt play immediately
 function tryPlay() {
     const playPromise = music.play();
 
     if (playPromise !== undefined) {
-        playPromise
-            .then(() => {
-                localStorage.setItem("bg-music-playing", "true");
-            })
-            .catch(() => {
-                // autoplay blocked → unlock on click
-                document.addEventListener("click", () => {
-                    music.play();
-                    localStorage.setItem("bg-music-playing", "true");
-                }, { once: true });
-            });
+        playPromise.catch(() => {
+            document.addEventListener("click", () => {
+                music.play();
+            }, { once: true });
+        });
     }
 }
 
-// ALWAYS attempt on page load
 window.addEventListener("load", tryPlay);
 
-// save progress continuously
 setInterval(() => {
     if (!music.paused) {
         localStorage.setItem("bg-music-time", music.currentTime);
     }
 }, 1000);
 
-// save on exit
 window.addEventListener("beforeunload", () => {
     localStorage.setItem("bg-music-time", music.currentTime);
 });
 </script>
+
 </body>
 </html>

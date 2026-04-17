@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, flash, session, render_template, send_from_directory
-from models.models import db, User, Roles, Permissions, RolePermissions, Figures, FigureImages, UserCollection, SubCollection, SubCollectionItem, LoginLog
+from models.models import db, User, Roles, Permissions, RolePermissions, Figures, FigureImages, UserCollection, SubCollection, SubCollectionItem, LoginLog, Brand, Manufacturer
 from services.user_service import get_current_user, register_user, authenticate_user, get_all_users_with_permissions, user_has_permission, verify_signup_code, verify_login_code, log_login_attempt, create_password_reset, verify_password_reset_code, change_user_password
 from services.role_service import create_permission, create_role, assign_permission_to_role, assign_role_to_user
 from services.figure_service import add_figure, add_brand, add_manufacturer, get_all_brands, get_all_manufacturers
@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 import os
 import random
-
+from flask_migrate import Migrate
 
 
 def allowed_file(filename):
@@ -18,14 +18,15 @@ def allowed_file(filename):
 # ------------------- Flask App -------------------
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
+migrate = Migrate(app, db)
 
 # ------------------- Database Setup -------------------
 
 # MySQL Configuration
-DB_USER = "root"              # your MySQL username
-DB_PASSWORD = "password"      # your MySQL password
+DB_USER = "root"             
+DB_PASSWORD = "password"     
 DB_HOST = "localhost"
-DB_NAME = "honours_db"       # create this in MySQL first
+DB_NAME = "honours_db"    
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:Thecaptain2004!@localhost:3306/honours_db"
 
@@ -211,8 +212,17 @@ def logout():
 # ------------------- Users -------------------
 @app.route("/users")
 def users():
+    
     if not session.get("logged_in"):
         return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 6):
+        return "Access Denied: Permission required.", 403
 
     current_user = User.query.filter_by(username=session["username"]).first()
     users_list = get_all_users_with_permissions(current_user)
@@ -221,6 +231,18 @@ def users():
 # ------------------- Permissions & Roles -------------------
 @app.route("/permcreate", methods=["GET", "POST"])
 def permcreate():
+    
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 2):
+        return "Access Denied: Permission required.", 403
+        
     if request.method == "POST":
         error = create_permission(request.form["permName"], request.form["permDesc"])
 
@@ -234,6 +256,18 @@ def permcreate():
 
 @app.route("/rolecreate", methods=["GET", "POST"])
 def rolecreate():
+    
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 3):
+        return "Access Denied: Permission required.", 403
+        
     if request.method == "POST":
         error = create_role(request.form["roleName"], request.form["roleDesc"])
 
@@ -247,6 +281,18 @@ def rolecreate():
 
 @app.route("/roleassign", methods=["GET", "POST"])
 def roleassign():
+    
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 4):
+        return "Access Denied: Permission required.", 403
+        
     roles = Roles.query.all()
     perms = Permissions.query.all()
 
@@ -263,6 +309,18 @@ def roleassign():
 
 @app.route("/assignuser", methods=["GET", "POST"])
 def assignuser():
+    
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 5):
+        return "Access Denied: Permission required.", 403
+        
     if request.method == "POST":
         error = assign_role_to_user(
             request.form["username"],
@@ -285,6 +343,18 @@ def assignuser():
 # ------------------- Add Figure -------------------
 @app.route("/addfigure", methods=["GET", "POST"])
 def addfigure():
+    
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if not user_has_permission(user, 7):
+        return "Access Denied: Permission required.", 403
+        
     brands = get_all_brands()
     manufacturers = get_all_manufacturers()
 
@@ -330,28 +400,44 @@ def addfigure():
 
 # ------------------- Add Brand -------------------
 @app.route("/add_brand", methods=["GET", "POST"])
-def add_brand_route():
+def add_brand():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+
+    if not user_has_permission(user, 8):
+        return "Access Denied: Permission required.", 403
+
     if request.method == "POST":
-        error = add_brand(request.form)
+        error = add_brand_service(request.form)
         if error:
             flash(error)
         else:
             flash("Brand added successfully.")
-            return redirect(url_for("add_brand_route"))
+            return redirect(url_for("add_brand"))
 
     return render_template("add_brand.html")
 
 
 # ------------------- Add Manufacturer -------------------
 @app.route("/add_manufacturer", methods=["GET", "POST"])
-def add_manufacturer_route():
+def add_manufacturer():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session.get("username")).first()
+
+    if not user_has_permission(user, 9):
+        return "Access Denied: Permission required.", 403
+
     if request.method == "POST":
-        error = add_manufacturer(request.form)
+        error = add_manufacturer_service(request.form)
         if error:
             flash(error)
         else:
             flash("Manufacturer added successfully.")
-            return redirect(url_for("add_manufacturer_route"))
+            return redirect(url_for("add_manufacturer"))
 
     return render_template("add_manufacturer.html")
     
@@ -368,11 +454,23 @@ def search():
         User.username.ilike(f"%{query}%")
     ).all()
 
-    figure_results = Figures.query.filter(
-        (Figures.name.ilike(f"%{query}%")) |
-        (Figures.genre.ilike(f"%{query}%")) |
-        (Figures.series.ilike(f"%{query}%"))
-    ).all()
+    figure_results = Figures.query.join(Brand).join(Manufacturer).filter(
+        (
+            Figures.name.ilike(f"%{query}%")
+        ) |
+        (
+            Figures.genre.ilike(f"%{query}%")
+        ) |
+        (
+            Figures.series.ilike(f"%{query}%")
+        ) |
+        (
+            Brand.name.ilike(f"%{query}%")
+        ) |
+        (
+            Manufacturer.name.ilike(f"%{query}%")
+        )
+    ).distinct().all()
 
     return render_template(
         "search.html",
@@ -423,16 +521,15 @@ def verify_change_password():
     Step 2: enter email + code
     """
     if request.method == "POST":
-        email = request.form.get("email")
         code = request.form.get("code")
 
+        email = session.get("reset_email")
         success, error = verify_password_reset_code(email, code)
 
         if error:
             flash(error)
             return render_template("change_password_verify.html")
 
-        session["reset_email"] = email
         flash("Code verified. You may now reset your password.")
         return redirect(url_for("set_new_password"))
 
@@ -441,9 +538,6 @@ def verify_change_password():
 
 @app.route("/set_new_password", methods=["GET", "POST"])
 def set_new_password():
-    """
-    Step 3: set new password
-    """
     email = session.get("reset_email")
 
     if not email:
@@ -458,14 +552,13 @@ def set_new_password():
 
         if error:
             flash(error)
-            return render_template("change_password.html")
+            return render_template("change_password_verify.html")
 
         session.pop("reset_email", None)
-        flash("Password updated successfully.")
-        return redirect(url_for("home"))
+
+        return "updated successfully"
 
     return render_template("change_password.html")
-
 # ------------------- Account ------------------- 
 
 @app.route("/account")
@@ -860,3 +953,4 @@ def figure_view(figure_id):
 # ------------------- Run App -------------------
 if __name__ == "__main__":
     app.run(debug=True)
+    

@@ -24,6 +24,13 @@
 
 </div>
 
+<script>
+function toggleFabMenu() {
+    const menu = document.getElementById("fabMenu");
+    menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+}
+</script>
+
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>

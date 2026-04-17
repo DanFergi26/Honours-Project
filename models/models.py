@@ -14,14 +14,13 @@ os.makedirs(INSTANCE_DIR, exist_ok=True)
 
 KEY_FILE = os.path.join(INSTANCE_DIR, "secret.key")
 
-if os.path.exists(KEY_FILE):
-    with open(KEY_FILE, "rb") as f:
-        ENCRYPTION_KEY = f.read()
-else:
+if not os.path.exists(KEY_FILE):
     ENCRYPTION_KEY = Fernet.generate_key()
     with open(KEY_FILE, "wb") as f:
         f.write(ENCRYPTION_KEY)
 
+with open(KEY_FILE, "rb") as f:
+    ENCRYPTION_KEY = f.read()
 fernet = Fernet(ENCRYPTION_KEY)
 
 
@@ -33,15 +32,15 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
 
-    surname = db.Column(db.LargeBinary, nullable=False)
-    forename = db.Column(db.LargeBinary, nullable=False)
+    _surname = db.Column(db.LargeBinary, nullable=False)
+    _forename = db.Column(db.LargeBinary, nullable=False)
 
     email = db.Column(db.String(255), unique=True, nullable=False)
     _email_enc = db.Column(db.LargeBinary, nullable=True)
 
-    dob = db.Column(db.LargeBinary, nullable=False)
-    country = db.Column(db.LargeBinary, nullable=False)
-    bio = db.Column(db.LargeBinary, nullable=True)
+    _dob = db.Column(db.LargeBinary, nullable=False)
+    _country = db.Column(db.LargeBinary, nullable=False)
+    _bio = db.Column(db.LargeBinary, nullable=True)
 
     password = db.Column(db.String(255), nullable=False)
     profile_pic = db.Column(db.String(255))
@@ -68,7 +67,10 @@ class User(db.Model):
     def decrypt(self, value):
         if not value:
             return None
-        return fernet.decrypt(value).decode()
+        try:
+            return fernet.decrypt(value).decode()
+        except Exception as e:
+            return f"[DECRYPT ERROR]"
 
     # ---------------- Encrypted Email (optional) ----------------
 

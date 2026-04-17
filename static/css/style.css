@@ -2,9 +2,16 @@
    GLOBAL
 ========================= */
 
+@font-face {
+    font-family: "PressStart";
+    src: url("/static/fonts/PressStart.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: "PressStart", sans-serif;
     background-color: black;
     color: #00ffff;
 }
@@ -322,9 +329,16 @@ a {
     border-bottom: 2px solid #00ffff;
 }
 
+.user-link,
+.figure-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
 .user-card {
     background-color: black;
-    height: 140px;
+    height: 240px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -964,4 +978,47 @@ a {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+/* =========================
+   LOGIN LOGS
+========================= */
+.table-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.logs-table {
+    border-collapse: collapse;
+    min-width: 600px;
+    background: black;
+    text-align: center;
+}
+
+.logs-table th,
+.logs-table td {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.logs-table th {
+    background: #111;
+    color: #00ffff;
+}
+
+.timeout {
+    color: red;
+    font-weight: bold;
+}
+.user-info {
+    margin-top: 10px;
+    font-size: 14px;
+    text-align: center;
+    color: #00ffff;
+}
+
+.user-info p {
+    margin: 4px 0;
 }
