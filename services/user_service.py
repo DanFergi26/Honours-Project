@@ -1,3 +1,5 @@
+# -- User_Serivce.py
+# -- Imports
 from models.models import db, User, RolePermissions, LoginLog
 import os
 import uuid
@@ -10,12 +12,12 @@ import random
 import string
 import requests
 
-# ---------------- Temp storage ----------------
+# TEMP STORAGE
 temp_signup_users = {}
 temp_login_codes = {}
 temp_password_resets = {}
 
-# ---------------- Helpers ----------------
+# HELPER
 def generate_code(length=6):
     return "".join(random.choices(string.digits, k=length))
 
@@ -52,7 +54,7 @@ def get_location_from_ip(ip):
         return "Unknown location"
 
 
-# ---------------- Signup ----------------
+# SIGNUP
 def register_user(form_data, files):
     username = safe_string(form_data.get("username"), 50)
     email = safe_string(form_data.get("email"), 255)
@@ -62,12 +64,14 @@ def register_user(form_data, files):
     if not username or not email or not password or not re_password:
         return None, "All fields are required."
 
+    # PASSWORD REQUIREMENTS
     if len(password) < 8:
         return None, "Password must be at least 8 characters."
 
     if password != re_password:
         return None, "Passwords do not match."
 
+    # USERNAME OR EMAIL ALREADY EXISTS
     if User.query.filter_by(username=username).first():
         return None, "Username already exists."
 
@@ -85,23 +89,27 @@ def register_user(form_data, files):
 
     code = generate_code()
 
+    # TEMPORARILY SIGN UP USER
     temp_signup_users[email] = {
         "form_data": form_data,
         "code": code,
         "profile_pic": profile_pic
     }
 
+    # SEND VERIFICATION CODE
     send_verification_email(email, code, subject="Signup Verification Code")
 
     return {"username": username, "email": email}, None
 
 
-# ---------------- Verify Signup ----------------
+# VERIFY SIGNUP
 def verify_signup_code(email, code):
     data = temp_signup_users.get(email)
+    # NO SIGNUP REQUESTS
     if not data:
         return None, "No signup request found."
 
+    # WRONG CODE
     if data["code"] != code:
         return None, "Invalid verification code."
 
@@ -121,58 +129,65 @@ def verify_signup_code(email, code):
             password=hashed_password,
             profile_pic=data.get("profile_pic")
         )
-
+        # SIGNUP USER
         db.session.add(user)
         db.session.commit()
 
         del temp_signup_users[email]
         return user, None
 
+    # ERROR
     except Exception:
         db.session.rollback()
         return None, "Error creating user account."
 
 
-# ---------------- LOGIN ----------------
+# LOGIN 
 def authenticate_user(username, password):
     username = safe_string(username, 50)
     user = User.query.filter_by(username=username).first()
 
+    # USER NOT FOUND
     if not user:
         return None, "User not found."
 
+    # WRONG PASSWORD
     if not check_password_hash(user.password, password):
         return None, "Incorrect password."
 
     code = generate_code()
     temp_login_codes[username] = code
 
+    # SEND VERIFICATION CODE
     send_verification_email(user.email, code, subject="Login Verification Code")
 
-    # IMPORTANT: tests expect visible trigger text
     return user, "code sent"
 
 
-# ---------------- VERIFY LOGIN ----------------
+# VERIFY LOGIN 
 def verify_login_code(username, code):
     expected = temp_login_codes.get(username)
 
+    # NO LOGIN ATTEMPT
     if not expected:
         return None, "No login attempt found."
 
+    # WRONG CODE
     if expected != code:
         return None, "Invalid verification code."
 
     del temp_login_codes[username]
 
+    # LOGIN USER
     user = User.query.filter_by(username=username).first()
 
     return user, "Login successful"
 
 
-# ---------------- Logging ----------------
+# LOGGING
 def log_login_attempt(user, username, success, ip=None, timed_out=False, send_alert=True):
 
+    # GET IP
     ip = ip or "0.0.0.0"
 
     log = LoginLog(
@@ -182,26 +197,30 @@ def log_login_attempt(user, username, success, ip=None, timed_out=False, send_al
         success=success,
         timed_out=timed_out
     )
-
+    
+    # STORE LOGIN ATTEMPT
     db.session.add(log)
     db.session.commit()
 
+    # IF SUCCESFUL SEND LOGIN ALERT
     if success and user and send_alert:
         location = get_location_from_ip(ip)
         change_password_url = url_for("change_password", _external=True)
         send_login_alert_email(user.email, location, change_password_url)
 
 
-# ---------------- PASSWORD RESET ----------------
+# PASSWORD RESET
 def create_password_reset(email):
     user = User.query.filter_by(email=email).first()
 
+    # EMAIL IS INCORRECT
     if not user:
         return None, "No account found with that email."
 
     code = generate_code()
     temp_password_resets[email] = code
 
+    # SEND VERIFICATION CODE
     send_verification_email(email, code, subject="Password Reset Code")
 
     return True, None
@@ -210,9 +229,11 @@ def create_password_reset(email):
 def verify_password_reset_code(email, code):
     expected_code = temp_password_resets.get(email)
 
+    # NO REQUEST MADE
     if not expected_code:
         return None, "No reset request found."
 
+    # WRONG CODE
     if expected_code != code:
         return None, "Invalid code."
 
@@ -220,33 +241,39 @@ def verify_password_reset_code(email, code):
 
 
 def change_user_password(email, new_password, confirm_password):
+    # SESSION EXPIRED
     if not email:
         return None, "Session expired. Please restart reset process."
 
     if not new_password or not confirm_password:
         return None, "All fields are required."
-
+    
+    # MISMATCHING PASSWORDS
     if new_password != confirm_password:
         return None, "Passwords do not match."
 
+    # PASSWORD REQUIREMENTS
     if len(new_password) < 8:
         return None, "Password must be at least 8 characters."
 
     user = User.query.filter_by(email=email).first()
 
+    # WRONG USER
     if not user:
         return None, "User not found."
 
+    # OLD AND NEW PASSWORD ARE TEH SAME
     if check_password_hash(user.password, new_password):
         return None, "New password cannot be the same as the old password."
-
+    
+    # UPDATE PASSWORD
     user.password = generate_password_hash(new_password).decode("utf-8")
     db.session.commit()
 
     return True, "updated successfully"
 
 
-# ---------------- USERS ----------------
+# USERS 
 def get_current_user():
     if not session.get("logged_in"):
         return None

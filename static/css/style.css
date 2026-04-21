@@ -47,7 +47,6 @@ a {
     gap: 40px;
 }
 
-/* Top logo circle */
 .logo-circle {
     width: 150px;
     height: 150px;
@@ -56,14 +55,12 @@ a {
     box-shadow: 0 0 25px #00ffff;
 }
 
-/* Nav buttons (vertical stack) */
 .nav-vertical {
     display: flex;
     flex-direction: column;
     gap: 25px;
 }
 
-/* Buttons */
 .nav-button {
     border: 2px solid #00ffff;
     padding: 15px 50px;
@@ -79,7 +76,6 @@ a {
     transform: scale(1.05);
 }
 
-/* Bottom social circle */
 .social-circle {
     width: 80px;
     height: 80px;
@@ -131,7 +127,6 @@ a {
     gap: 15px;
 }
 
-/* Search bar (white standout) */
 .search-bar {
     width: 180px;
     padding: 6px 10px;
@@ -161,7 +156,6 @@ a {
     object-fit: cover;
 }
 
-/* Divider */
 .divider {
     height: 3px;
     background-color: #00ffff;
@@ -208,7 +202,6 @@ a {
 .arrow.left { left: 10px; }
 .arrow.right { right: 10px; }
 
-/* Dots */
 .dots {
     text-align: center;
     margin-top: 10px;
@@ -292,7 +285,6 @@ a {
     width: 100%;
 }
 
-/* Message */
 .message {
     color: red;
     margin-top: 10px;
@@ -793,14 +785,12 @@ a {
     font-family: 'Press Start 2P', monospace;
 }
 
-/* Title */
 #loading-text {
     margin-bottom: 30px;
     font-size: 22px;
     text-shadow: 0 0 10px #00ffff;
 }
 
-/* blinking text */
 .blink {
     animation: blinkAnim 0.4s step-start infinite;
 }
@@ -809,7 +799,6 @@ a {
     50% { opacity: 0.2; }
 }
 
-/* progress container */
 .progress-container {
     display: flex;
     width: 320px;
@@ -819,13 +808,11 @@ a {
     box-shadow: 0 0 15px #00ffff;
 }
 
-/* bar wrapper */
 .progress-bar {
     display: flex;
     width: 100%;
 }
 
-/* blocks */
 .block {
     flex: 1;
     margin: 1px;
@@ -835,13 +822,11 @@ a {
     transition: opacity 0.2s;
 }
 
-/* active block */
 .block.active {
     opacity: 1;
     animation: flicker 0.3s infinite;
 }
 
-/* flicker effect */
 @keyframes flicker {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
@@ -901,12 +886,9 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    /* KEEP YOUR GRID BACKGROUND FEEL */
     background-color: black;
 }
 
-/* panel */
 .audio-panel {
     border: 2px solid #00ffff;
     padding: 40px;
@@ -915,7 +897,6 @@ a {
     background-color: rgba(0, 0, 0, 0.85);
 }
 
-/* title */
 .audio-title {
     font-family: Arial, sans-serif;
     font-size: 16px;
@@ -924,7 +905,6 @@ a {
     letter-spacing: 2px;
 }
 
-/* button */
 .audio-button {
     border: 2px solid #00ffff;
     padding: 15px 30px;
@@ -942,7 +922,6 @@ a {
     transform: scale(1.05);
 }
 
-/* subtitle */
 .audio-sub {
     margin-top: 15px;
     font-size: 12px;
@@ -983,6 +962,7 @@ a {
 /* =========================
    LOGIN LOGS
 ========================= */
+
 .table-wrapper {
     display: flex;
     justify-content: center;

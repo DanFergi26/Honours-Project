@@ -45,7 +45,7 @@
 <!-- Divider -->
 <div class="divider"></div>
 
-<!-- ================= USERS ================= -->
+<!-- USERS  -->
 <div class="section-title">Users</div>
 
 <div class="content-container">
@@ -74,7 +74,7 @@
     {% endif %}
 </div>
 
-<!-- ================= FIGURES ================= -->
+<!-- FIGURES -->
 <div class="section-title">Figures</div>
 
 <div class="content-container">
@@ -106,6 +106,7 @@
     {% endif %}
 </div>
 
+<!-- FAB Menu -->
 <div class="fab-container">
     <div class="fab-button" onclick="toggleFabMenu()">
         <img src="{{ url_for('static', filename='site_images/tron.png') }}">
@@ -128,6 +129,7 @@ function toggleFabMenu() {
 }
 </script>
 
+<!-- Music -->
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>

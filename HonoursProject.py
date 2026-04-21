@@ -1,17 +1,21 @@
+# --- HonoursProject.py ---
+# --- Imports ---
 from flask import Flask, request, redirect, url_for, flash, session, render_template, send_from_directory
+from datetime import datetime, timedelta
+from werkzeug.utils import secure_filename
+import os
+import random
+from flask_migrate import Migrate
+# --- Imports from project
 from models.models import db, User, Roles, Permissions, RolePermissions, Figures, FigureImages, UserCollection, SubCollection, SubCollectionItem, LoginLog, Brand, Manufacturer
 from services.user_service import get_current_user, register_user, authenticate_user, get_all_users_with_permissions, user_has_permission, verify_signup_code, verify_login_code, log_login_attempt, create_password_reset, verify_password_reset_code, change_user_password
 from services.role_service import create_permission, create_role, assign_permission_to_role, assign_role_to_user
 from services.figure_service import add_figure, add_brand, add_manufacturer, get_all_brands, get_all_manufacturers
 from services.email_service import send_verification_email
 from config import PROFILE_PICS_FOLDER, UPLOAD_FOLDER, ALLOWED_EXTENSIONS
-from datetime import datetime, timedelta
-from werkzeug.utils import secure_filename
-import os
-import random
-from flask_migrate import Migrate
 
 
+# --- Extension check
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
     
@@ -99,15 +103,18 @@ def verify_signup():
         entered_code = request.form.get("code")
         email = session.get("signup_email")
 
+        # NO EMAIL
         if not email:
             flash("No signup attempt found. Please signup again.")
             return redirect(url_for("signup"))
 
+        # WRONG CODE
         user, error = verify_signup_code(email, entered_code)
         if error:
             flash(error)
             return render_template("signup_verify.html")
-
+        
+        # CORRECT CODE
         session.pop("signup_email", None)
         flash("Signup complete! You can now login.")
         return redirect(url_for("home"))
@@ -178,10 +185,12 @@ def verify_login():
         entered_code = request.form.get("code")
         email = session.get("login_email")
 
+        # NO LOGIN ATTEMPT
         if not email:
             flash("No login attempt found. Please login again.")
             return redirect(url_for("login"))
 
+        # CORRECT CODE
         if entered_code == session.get("login_code"):
             username = session.pop("login_username", None)
             session.pop("login_email", None)
@@ -194,6 +203,8 @@ def verify_login():
             session["profile_pic"] = user.profile_pic or "default_pfp.jpg"
             flash("Login successful!")
             return redirect(url_for("home"))
+            
+            # WRONG CODE
         else:
             session["login_attempts"] = session.get("login_attempts", 0) + 1
             if session["login_attempts"] > 5:
@@ -216,11 +227,13 @@ def users():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
+    # DISPLAY ALL USERS IN THE 'USERS' TABLE
     user = User.query.filter_by(username=session.get("username")).first()
     if not user:
         session.clear()
         return redirect(url_for("login"))
 
+    # CHECK CURRENT USER'S PERMISSIONS
     if not user_has_permission(user, 6):
         return "Access Denied: Permission required.", 403
 
@@ -231,7 +244,8 @@ def users():
 # ------------------- Permissions & Roles -------------------
 @app.route("/permcreate", methods=["GET", "POST"])
 def permcreate():
-    
+ 
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -239,13 +253,15 @@ def permcreate():
     if not user:
         session.clear()
         return redirect(url_for("login"))
-
+    
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 2):
         return "Access Denied: Permission required.", 403
-        
+    
+    # CREATE PERMISSION
     if request.method == "POST":
         error = create_permission(request.form["permName"], request.form["permDesc"])
-
+        
         if error:
             flash(error, "error")
         else:
@@ -257,6 +273,7 @@ def permcreate():
 @app.route("/rolecreate", methods=["GET", "POST"])
 def rolecreate():
     
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -265,9 +282,11 @@ def rolecreate():
         session.clear()
         return redirect(url_for("login"))
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 3):
         return "Access Denied: Permission required.", 403
-        
+    
+    # CREATE ROLE
     if request.method == "POST":
         error = create_role(request.form["roleName"], request.form["roleDesc"])
 
@@ -282,6 +301,7 @@ def rolecreate():
 @app.route("/roleassign", methods=["GET", "POST"])
 def roleassign():
     
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -290,12 +310,14 @@ def roleassign():
         session.clear()
         return redirect(url_for("login"))
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 4):
         return "Access Denied: Permission required.", 403
         
     roles = Roles.query.all()
     perms = Permissions.query.all()
 
+    # ASSIGN PERMISSION TO ROLE
     if request.method == "POST":
         error = assign_permission_to_role(
             request.form["roleName"],
@@ -310,6 +332,7 @@ def roleassign():
 @app.route("/assignuser", methods=["GET", "POST"])
 def assignuser():
     
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -318,9 +341,11 @@ def assignuser():
         session.clear()
         return redirect(url_for("login"))
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 5):
         return "Access Denied: Permission required.", 403
-        
+      
+    # ASSIGN ROLE TO USER
     if request.method == "POST":
         error = assign_role_to_user(
             request.form["username"],
@@ -344,6 +369,7 @@ def assignuser():
 @app.route("/addfigure", methods=["GET", "POST"])
 def addfigure():
     
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -352,12 +378,14 @@ def addfigure():
         session.clear()
         return redirect(url_for("login"))
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 7):
         return "Access Denied: Permission required.", 403
         
     brands = get_all_brands()
     manufacturers = get_all_manufacturers()
 
+    # ADD FIGURE
     if request.method == "POST":
         error = add_figure(request.form)
 
@@ -365,7 +393,6 @@ def addfigure():
             flash(error)
             return render_template("addfigure.html", brand=brands, manufacturer=manufacturers)
 
-        # get last created figure (simple approach)
         figure = Figures.query.order_by(Figures.id.desc()).first()
 
         files = request.files.getlist("images")
@@ -401,14 +428,17 @@ def addfigure():
 # ------------------- Add Brand -------------------
 @app.route("/add_brand", methods=["GET", "POST"])
 def add_brand():
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
     user = User.query.filter_by(username=session.get("username")).first()
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 8):
         return "Access Denied: Permission required.", 403
 
+    # ADD BRAND
     if request.method == "POST":
         error = add_brand_service(request.form)
         if error:
@@ -423,14 +453,18 @@ def add_brand():
 # ------------------- Add Manufacturer -------------------
 @app.route("/add_manufacturer", methods=["GET", "POST"])
 def add_manufacturer():
+    
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
     user = User.query.filter_by(username=session.get("username")).first()
 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 9):
         return "Access Denied: Permission required.", 403
 
+    # ADD MANUFACTURER
     if request.method == "POST":
         error = add_manufacturer_service(request.form)
         if error:
@@ -446,14 +480,16 @@ def add_manufacturer():
 def search():
     query = request.args.get("q", "").strip()
 
-    # limit input size (prevents abuse)
+    # LIMIT INPUT SIZE
     if len(query) > 100:
         query = query[:100]
 
+    # SEARCH FOR USERNAMES IN USERS' TABLE
     user_results = User.query.filter(
         User.username.ilike(f"%{query}%")
     ).all()
 
+    # SEARCH FOR VARIOUS FIGURE INFO
     figure_results = Figures.query.join(Brand).join(Manufacturer).filter(
         (
             Figures.name.ilike(f"%{query}%")
@@ -482,15 +518,18 @@ def search():
 # ----------------- Login Logs ------------------
 @app.route("/loginlogs")
 def loginlogs():
+        
+    # CHECK IF LOGGED IN
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
     user = User.query.filter_by(username=session["username"]).first()
 
-    
-   #-- if user.roleID != 1:  
-   #--     return "Access Denied", 403
+    # CHECK USER PERMISSION
+    if not user_has_permission(user, 10):
+        return "Access Denied: Permission required.", 403
 
+    # DISPLAY CONTENT FROM LOGINLOGS TABLE
     logs = LoginLog.query.order_by(LoginLog.attempt_time.desc()).all()
     return render_template("loginlogs.html", logs=logs)
 
@@ -500,15 +539,18 @@ def change_password():
     """
     Step 1: user enters email from login alert link
     """
+    # GETS EMAIL FROM USER
     if request.method == "POST":
         email = request.form.get("email")
 
         success, error = create_password_reset(email)
 
+        # IF INCORRECT GIVE ERROR
         if error:
             flash(error)
             return render_template("change_password_request.html")
 
+        # IF CORRECT SEND VERIFICATION CODE AND PROCEED
         flash("Verification code sent to your email.")
         return redirect(url_for("verify_change_password"))
 
@@ -520,16 +562,19 @@ def verify_change_password():
     """
     Step 2: enter email + code
     """
+    # GET CODE FROM USER
     if request.method == "POST":
         code = request.form.get("code")
 
         email = session.get("reset_email")
         success, error = verify_password_reset_code(email, code)
 
+        # IF INCORRECT GIVE ERROR
         if error:
             flash(error)
             return render_template("change_password_verify.html")
 
+        # IF CORRECT PROCEED TO CHANGE PASSWORD
         flash("Code verified. You may now reset your password.")
         return redirect(url_for("set_new_password"))
 
@@ -538,36 +583,44 @@ def verify_change_password():
 
 @app.route("/set_new_password", methods=["GET", "POST"])
 def set_new_password():
+    
+    # CHECK IF CURRENT USER HAS THE RESET EMAIL
     email = session.get("reset_email")
 
+    # IF NOT, RESTART PROCESS
     if not email:
         flash("Session expired. Please restart password reset.")
         return redirect(url_for("change_password"))
 
+    # IF YES, LET THEM CHANGE PASSWORD
     if request.method == "POST":
         new_password = request.form.get("password")
         confirm_password = request.form.get("repassword")
 
+        # GIVE ERROR IF PASSWORD DOESN'T MEET REQUIREMENTS
         success, error = change_user_password(email, new_password, confirm_password)
 
         if error:
             flash(error)
             return render_template("change_password_verify.html")
-
+        
+        # REST PASSWORD IF CONDITIONS ARE MET
         session.pop("reset_email", None)
 
         return "updated successfully"
 
     return render_template("change_password.html")
+    
 # ------------------- Account ------------------- 
 
 @app.route("/account")
 def account():
+    
+    # GET CURRENT USER
     current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login"))
 
-    # The profile being viewed (for now it's always yourself)
     profile_user = User.query.filter_by(username=session["username"]).first()
 
     collections = UserCollection.query.filter_by(user_id=current_user.id).all()
@@ -582,20 +635,23 @@ def account():
 
 @app.route("/account/<username>")
 def view_account(username):
+    
+    # GET CURRENT USER
     current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login"))
 
-    # redirect if viewing self
+    # REDIRECT IF CURRENT USER'S ACCOUNT
     if current_user.username == username:
         return redirect(url_for("account"))
 
     profile_user = User.query.filter_by(username=username).first()
 
+    # ERROR IF USER DOESN'T EXIST
     if not profile_user:
         return "User not found", 404
 
-    # 🔥 GET FULL FIGURE OBJECTS (NOT just IDs)
+    # GET FULL FIGURE OBJECTS 
     collection_items = UserCollection.query.filter_by(user_id=profile_user.id).all()
 
     figures = []
@@ -615,6 +671,8 @@ def view_account(username):
     
 @app.route("/account/<username>/subcollection/<int:sub_id>")
 def view_public_subcollection(username, sub_id):
+    
+    # GET CURRENT USER
     current_user = get_current_user()
     if not current_user:
         return redirect(url_for("login"))
@@ -625,11 +683,11 @@ def view_public_subcollection(username, sub_id):
 
     sub = SubCollection.query.get(sub_id)
 
-    # ownership check (subcollection must belong to the profile user)
+    # OWNERSHIP CHECK
     if not sub or sub.user_id != profile_user.id:
         return "Subcollection not found", 404
 
-    # get figures in subcollection
+    # GET FIGURES IN SUBCOLLECTION
     items = SubCollectionItem.query.filter_by(subcollection_id=sub_id).all()
 
     figures = []
@@ -648,10 +706,13 @@ def view_public_subcollection(username, sub_id):
 
 @app.route("/my_collection")
 def my_collection():
+    
+    # GET CURRENT USER
     user = get_current_user()
     if not user:
         return redirect(url_for("login"))
 
+    # GET ALL FIGURES IN USERCOLLECTION
     items = UserCollection.query.filter_by(user_id=user.id).all()
 
     figures = []
@@ -664,10 +725,13 @@ def my_collection():
     
 @app.route("/add_collection", methods=["GET", "POST"])
 def add_collection():
+    
+    # GET CURRENT USER
     user = get_current_user()
     if not user:
         return redirect(url_for("login"))
 
+    # ADD FIGURE TO COLLECTION
     if request.method == "POST":
         figure_id = request.form.get("figure_id")
 
@@ -677,7 +741,7 @@ def add_collection():
                 figure_id=figure_id
             ).first()
 
-            # only add if NOT already in collection
+            # ONLY ADD IF FIGURE IS NOT IN THE COLLECTION
             if not exists:
                 db.session.add(UserCollection(
                     user_id=user.id,
@@ -688,6 +752,7 @@ def add_collection():
         return redirect(url_for("add_collection"))
 
  
+    # SEARCH FOR FIGURES IN THE  DB
     query = request.args.get("q", "")
 
     if query:
@@ -712,11 +777,13 @@ def add_collection():
     
 @app.route("/create_subcollection", methods=["GET", "POST"])
 def create_subcollection():
+    
+    # GET CURRENT USER
     user = get_current_user()
     if not user:
         return redirect(url_for("login"))
 
-    # GET → show page
+    # SHOW PAGE
     if request.method == "GET":
 
         user_figures = (
@@ -731,7 +798,7 @@ def create_subcollection():
             figures=user_figures
         )
 
-    # POST → create subcollection
+    # TITLE SUBCOLLECTION
     title = request.form.get("title", "").strip()
     if not title:
         return render_template(
@@ -740,7 +807,7 @@ def create_subcollection():
             message="Title is required"
         )
 
-    # handle image upload
+    # IMAGE UPLOAD
     file = request.files.get("image")
     filename = None
 
@@ -749,7 +816,7 @@ def create_subcollection():
         path = os.path.join("static/subimg", filename)
         file.save(path)
 
-    # create subcollection FIRST
+    # CREATE SUBCOLLECTION
     sub = SubCollection(
         user_id=user.id,
         title=title,
@@ -757,12 +824,11 @@ def create_subcollection():
     )
 
     db.session.add(sub)
-    db.session.commit()  # IMPORTANT so sub.id exists
+    db.session.commit()  
 
-    # supports multiple figures (checkbox / list)
+    # SELECT FIGURES FROM USERCOLLECTION
     figure_ids = request.form.getlist("figure_ids")
 
-    # fallback: single add button support
     single_id = request.form.get("figure_id")
     if single_id and not figure_ids:
         figure_ids = [single_id]
@@ -784,7 +850,7 @@ def add_to_subcollection():
     sub_id = request.form["subcollection_id"]
     fig_id = request.form["figure_id"]
 
-    # prevent duplicates
+    # PREVENT DUPLICATES
     exists = SubCollectionItem.query.filter_by(
         subcollection_id=sub_id,
         figure_id=fig_id
@@ -801,13 +867,15 @@ def add_to_subcollection():
     
 @app.route("/subcollection/<int:id>")
 def subcollection(id):
+    
+    # GET CURRENT USER
     user = get_current_user()
     if not user:
         return redirect(url_for("login"))
 
     sub = SubCollection.query.get(id)
 
-    # ownership protection
+    # OWNERSHIP PROTECTION
     if not sub or sub.user_id != user.id:
         return "Access Denied", 403
 
@@ -830,14 +898,12 @@ def edit_subcollection(id):
     if subcollection.user_id != user.id:
         return "Access Denied", 403
 
-    # =========================
-    # HANDLE FORM ACTIONS
-    # =========================
+    # EDIT SUBCOLLECTION
     if request.method == "POST":
 
         action = request.form.get("action")
 
-        # ---- update title/image ----
+        # UPDATE TITLE AND IMAGE
         if action == "update":
             subcollection.title = request.form.get("title")
 
@@ -851,7 +917,7 @@ def edit_subcollection(id):
             db.session.commit()
             return redirect(url_for("edit_subcollection", id=id))
 
-        # ---- add figure ----
+        # ADD FIGURE
         if action == "add":
             fig_id = int(request.form.get("figure_id"))
 
@@ -869,7 +935,7 @@ def edit_subcollection(id):
 
             return redirect(url_for("edit_subcollection", id=id))
 
-        # ---- remove figure ----
+        # REMOVE FIGURE
         if action == "remove":
             fig_id = int(request.form.get("figure_id"))
 
@@ -884,7 +950,7 @@ def edit_subcollection(id):
 
             return redirect(url_for("edit_subcollection", id=id))
 
-        # ---- delete subcollection ----
+        # DELETE SUBCOLLECTION
         if action == "delete":
             SubCollectionItem.query.filter_by(subcollection_id=id).delete()
             db.session.delete(subcollection)
@@ -915,6 +981,7 @@ def edit_subcollection(id):
 @app.route("/admin")
 def admin():
   
+    # GET CURRENT USER
     if not session.get("logged_in"):
         return redirect(url_for("login"))
 
@@ -924,7 +991,7 @@ def admin():
         session.clear()
         return redirect(url_for("login"))
 
- 
+    # CHECK USER PERMISSION
     if not user_has_permission(user, 1):
         return "Access Denied: Admin permissions required.", 403
 

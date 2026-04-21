@@ -1,12 +1,17 @@
+# -- Figure_Service.py
+# -- Imports
 from models.models import db, Figures, Brand, Manufacturer
 from werkzeug.utils import secure_filename
 
+# -- LOCATE FOLDER AND SET ALLOWED_EXTENSIONS TYPES
 UPLOAD_FOLDER = "static/figure_images"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 
+# -- ALLOWED_EXTENSIONS TYPES
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-# ------------------- Add Figure -------------------
+    
+# ADD FIGURE FORUM
 def add_figure(form_data):
     required_fields = [
         "figname", "figdesc", "brandID", "manufacturerID",
@@ -46,15 +51,15 @@ def add_figure(form_data):
         db.session.rollback()
         return f"Error adding figure: {str(e)}"
 
-# ------------------- Get All Brands -------------------
+# GET ALL BRANDS
 def get_all_brands():
     return Brand.query.all()
 
-# ------------------- Get All Manufacturers -------------------
+# GET ALL MANUFACTURERS
 def get_all_manufacturers():
     return Manufacturer.query.all()
     
-# ------------------- Add Brand -------------------
+# ADD BRAND FORUM
 def add_brand(form_data):
     name = form_data.get("name", "").strip()
     desc = form_data.get("desc", "").strip()
@@ -77,7 +82,7 @@ def add_brand(form_data):
     return None
 
 
-# ------------------- Add Manufacturer -------------------
+# ADD MANUFACTURERS FORUM
 def add_manufacturer(form_data):
     name = form_data.get("name", "").strip()
     desc = form_data.get("desc", "").strip()

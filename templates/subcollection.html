@@ -5,7 +5,42 @@
     <title>{{ sub.title }}</title>
 </head>
 <body>
+<!-- =========================
+     NAVBAR
+========================= -->
+<div class="navbar">
 
+    <div class="nav-left">
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='site_images/insidethegrid.png') }}" class="nav-logo">
+        </a>
+    </div>
+
+    <div class="nav-links">
+        <a href="{{ url_for('home') }}">Home</a> |
+        <a href="#">Catalog</a> |
+        <a href="#">Contact</a> |
+        <a href="{{ url_for('account') }}">Account</a>
+    </div>
+
+    <div class="nav-right">
+        <form method="GET" action="{{ url_for('search') }}">
+            <input type="text" name="q" placeholder="Search..." class="search-bar">
+        </form>
+
+        <div class="profile-circle">
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('account') }}">
+                    <img src="{{ url_for('profile_pics', filename=session.get('profile_pic', 'default_pfp.jpg')) }}">
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CONTENT -->
 <h1>{{ sub.title }}</h1>
 
 {% if figures %}
@@ -30,6 +65,7 @@
 <br><br>
 <a href="{{ url_for('account') }}">Back to Account</a>
 
+<!-- FAB Menu -->
 <div class="fab-container">
     <div class="fab-button" onclick="toggleFabMenu()">
         <img src="{{ url_for('static', filename='site_images/tron.png') }}">
@@ -45,6 +81,7 @@
     </div>
 </div>
 
+
 <script>
 function toggleFabMenu() {
     const menu = document.getElementById("fabMenu");
@@ -52,7 +89,7 @@ function toggleFabMenu() {
 }
 </script>
 
-
+<!-- Music -->
 <audio id="bg-music" loop>
     <source src="{{ url_for('static', filename='audio/background.mp3') }}" type="audio/mpeg">
 </audio>
